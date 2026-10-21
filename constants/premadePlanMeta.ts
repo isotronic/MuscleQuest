@@ -85,6 +85,30 @@ export const PREMADE_PLAN_META: Record<number, PremadePlanMeta> = {
     sessionMinutes: 60,
     equipment: "gym",
   },
+  8: {
+    description: msg`For beginners who want to build muscle with a barbell. Three full body days a week use the squat, bench press, deadlift, overhead press, rows and pull-ups, in sets of 6 to 12 reps.`,
+    level: "beginner",
+    goal: "muscle",
+    daysPerWeek: 3,
+    sessionMinutes: 45,
+    equipment: "gym",
+  },
+  9: {
+    description: msg`The classic strength programme for beginners. Two short barbell workouts alternate three days a week, with 5 sets of 5 reps on each lift; add a little weight whenever you complete them all.`,
+    level: "beginner",
+    goal: "strength",
+    daysPerWeek: 3,
+    sessionMinutes: 55,
+    equipment: "gym",
+  },
+  10: {
+    description: msg`For lifters with a busy week who can train twice. Each session covers the whole body with big compound lifts and a few accessories.`,
+    level: "intermediate",
+    goal: "general",
+    daysPerWeek: 2,
+    sessionMinutes: 60,
+    equipment: "gym",
+  },
 };
 
 export function premadePlanMeta(

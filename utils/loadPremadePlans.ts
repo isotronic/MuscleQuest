@@ -137,6 +137,34 @@ const insertPlans = async (db: SQLiteDatabase, plans: Plan[]) => {
   });
 };
 
+// Plan files shipped after the library copy can reference exercises the
+// device does not have yet, so those are copied in before the plans.
+const insertPlanFiles = async (
+  db: SQLiteDatabase,
+  files: (Plan | Plan[])[],
+  fileDone: () => void,
+) => {
+  const allAppExerciseIds = new Set<number>();
+  for (const file of files) {
+    const plansArray = Array.isArray(file) ? file : [file];
+    for (const plan of plansArray) {
+      for (const workout of plan.workouts) {
+        for (const exercise of workout.exercises) {
+          if (exercise.exercise_id != null) {
+            allAppExerciseIds.add(exercise.exercise_id);
+          }
+        }
+      }
+    }
+  }
+  await ensureAppExercisesExist(db, Array.from(allAppExerciseIds));
+
+  for (const file of files) {
+    await insertPlans(db, Array.isArray(file) ? file : [file]);
+    fileDone();
+  }
+};
+
 export const loadPremadePlans = async (onProgress?: ProgressCallback) => {
   let db: SQLiteDatabase | undefined;
   try {
@@ -167,41 +195,56 @@ export const loadPremadePlans = async (onProgress?: ProgressCallback) => {
     }
 
     if (syncVersion < APP_DATA_SYNC.premadePlansV2) {
-      const newPlanFiles = [
-        require("@/assets/data/5-day-bro-split.json"),
-        require("@/assets/data/5-day-ppl.json"),
-        require("@/assets/data/6-day-split.json"),
-        require("@/assets/data/body-weight.json"),
-        require("@/assets/data/dumbbell-only.json"),
-      ];
-
-      // Collect all unique appData exercise IDs referenced in these plans
-      const allAppExerciseIds = new Set<number>();
-      for (const file of newPlanFiles) {
-        const plansArray: Plan[] = Array.isArray(file) ? file : [file];
-        for (const plan of plansArray) {
-          for (const workout of plan.workouts) {
-            for (const exercise of workout.exercises) {
-              if (exercise.exercise_id != null) {
-                allAppExerciseIds.add(exercise.exercise_id);
-              }
-            }
-          }
-        }
-      }
-
-      // Ensure all referenced exercises exist in userData.db
-      await ensureAppExercisesExist(db, Array.from(allAppExerciseIds));
-
-      for (const file of newPlanFiles) {
-        const plansArray = Array.isArray(file) ? file : [file];
-        await insertPlans(db, plansArray);
-        fileDone();
-      }
+      await insertPlanFiles(
+        db,
+        [
+          require("@/assets/data/5-day-bro-split.json"),
+          require("@/assets/data/5-day-ppl.json"),
+          require("@/assets/data/6-day-split.json"),
+          require("@/assets/data/body-weight.json"),
+          require("@/assets/data/dumbbell-only.json"),
+        ],
+        fileDone,
+      );
 
       await setAppDataSyncVersion(db, APP_DATA_SYNC.premadePlansV2);
       Bugsnag.leaveBreadcrumb("Premade plans v2 loaded");
     }
+  } catch (error: any) {
+    Bugsnag.notify(error);
+    console.error("Error loading or inserting premade plans:", error);
+    throw error;
+  } finally {
+    if (db) await db.closeAsync();
+  }
+};
+
+/**
+ * Premade plans added after the library refresh. A step of its own because
+ * its sync version is above libraryRefreshed: run from loadPremadePlans, it
+ * would advance an older install past the refresh and the flag resync.
+ */
+export const loadPremadePlansV3 = async (onProgress?: ProgressCallback) => {
+  let db: SQLiteDatabase | undefined;
+  try {
+    db = await openDatabase("userData.db");
+    if ((await getAppDataSyncVersion(db)) >= APP_DATA_SYNC.premadePlansV3) {
+      return;
+    }
+
+    const files = [
+      require("@/assets/data/beginner-growth.json"),
+      require("@/assets/data/classic-5x5.json"),
+      require("@/assets/data/2-day-full-body.json"),
+    ];
+    let filesDone = 0;
+    onProgress?.(0, files.length);
+    await insertPlanFiles(db, files, () =>
+      onProgress?.(++filesDone, files.length),
+    );
+
+    await setAppDataSyncVersion(db, APP_DATA_SYNC.premadePlansV3);
+    Bugsnag.leaveBreadcrumb("Premade plans v3 loaded");
   } catch (error: any) {
     Bugsnag.notify(error);
     console.error("Error loading or inserting premade plans:", error);

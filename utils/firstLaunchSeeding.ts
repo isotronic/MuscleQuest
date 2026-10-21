@@ -4,7 +4,7 @@ import {
   refreshLibraryFromAppData,
   syncExerciseFlagsFromAppData,
 } from "@/utils/database";
-import { loadPremadePlans } from "@/utils/loadPremadePlans";
+import { loadPremadePlans, loadPremadePlansV3 } from "@/utils/loadPremadePlans";
 import {
   exerciseImageFilesInFlight,
   startExerciseImageFiles,
@@ -23,7 +23,7 @@ export type StartupProgress = {
 // gated on the app data sync version, so a run cut short by a kill picks up
 // where it stopped. Order matters: plans look exercises up by app_exercise_id,
 // and each later step's sync version is above every step before it, so the
-// library refresh runs last.
+// library refresh runs after the first plans and the newest plans run last.
 export const runSeedingSteps = async (
   onProgress?: (progress: StartupProgress) => void,
 ): Promise<void> => {
@@ -37,6 +37,10 @@ export const runSeedingSteps = async (
   );
   await syncExerciseFlagsFromAppData();
   await refreshLibraryFromAppData();
+  await loadPremadePlansV3(
+    onProgress &&
+      ((done, total) => onProgress({ stage: "plans", done, total })),
+  );
 };
 
 const setStatus = (status: "running" | "done" | "failed") =>

@@ -20,6 +20,8 @@ export const APP_DATA_SYNC = {
   // Library rows rewritten from appData4.db (the audited library), with
   // history and plans converted for exercises whose tracking type changed.
   libraryRefreshed: 8,
+  // Beginner Growth, Classic 5x5 and 2-Day Full Body (app_plan_id 8 to 10).
+  premadePlansV3: 9,
 } as const;
 
 const SYNC_KEY = "appDataSyncVersion";

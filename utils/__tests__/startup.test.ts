@@ -55,6 +55,7 @@ jest.mock("@/utils/firstLaunchSeeding", () => {
 });
 jest.mock("@/utils/loadPremadePlans", () => ({
   loadPremadePlans: jest.fn(),
+  loadPremadePlansV3: jest.fn(),
 }));
 jest.mock("@/utils/db/exerciseImageFiles", () => ({
   forgetExerciseImageFiles: jest.fn(),
