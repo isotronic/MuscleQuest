@@ -2,6 +2,9 @@
 # `eas workflow:run .eas/workflows/e2e-android.yml` from a local checkout, so
 # the upload includes the gitignored google-services.json, assets/db/ and
 # assets/data/ (a GitHub-triggered run would not have them).
+#
+# The test job is a custom job rather than the pre-packaged `maestro` type,
+# which needs a paid EAS plan.
 name: E2E Android
 
 jobs:
@@ -13,7 +16,20 @@ jobs:
 
   maestro:
     needs: [build]
-    type: maestro
-    params:
-      build_id: ${{ needs.build.outputs.build_id }}
-      flow_path: ['.maestro/smoke.yml']
+    # Android emulators need a nested-virtualization worker.
+    runs_on: linux-medium-nested-virtualization
+    steps:
+      - uses: eas/checkout
+      - uses: eas/download_build
+        id: download_build
+        with:
+          build_id: ${{ needs.build.outputs.build_id }}
+          extensions: [apk]
+      - uses: eas/install_maestro
+      - uses: eas/start_android_emulator
+        with:
+          system_image_package: system-images;android-34;default;x86_64
+      - name: Install the app
+        run: adb install "${{ steps.download_build.outputs.artifact_path }}"
+      - name: Run the smoke flows
+        run: maestro test .maestro/smoke.yml
