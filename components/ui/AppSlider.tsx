@@ -15,6 +15,7 @@ interface AppSliderProps {
   onChange?: (value: number) => void;
   onSlidingComplete?: (value: number) => void;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
 export function AppSlider({
@@ -25,6 +26,7 @@ export function AppSlider({
   onChange,
   onSlidingComplete,
   style,
+  testID,
 }: AppSliderProps) {
   const { inputs } = useAppTheme();
 
@@ -40,6 +42,7 @@ export function AppSlider({
       maximumTrackTintColor={inputs.trackInactive}
       thumbTintColor={inputs.thumb}
       style={style}
+      testID={testID}
     />
   );
 }

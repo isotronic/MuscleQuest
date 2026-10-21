@@ -251,6 +251,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </ThemedText>
                   <AppSlider
                     style={styles.slider}
+                    testID="settings-modal-slider"
                     value={Number(inputValue)}
                     min={sliderMin}
                     max={sliderMax}
