@@ -3,7 +3,6 @@ import {
   applyProgressionToExercise,
   dismissProgressionState,
   getDeloadWeek,
-  getMaxWorkingWeightForCompletedExercise,
   getPendingRecoveryCheckIns,
   setDeloadWeek,
 } from "@/utils/db/progression";
@@ -63,44 +62,6 @@ describe("progression state", () => {
     await setDeloadWeek(3, null);
     expect(await getDeloadWeek(3)).toBeNull();
     expect(await getDeloadWeek(4)).toBe("2026-W40");
-  });
-
-  describe("getMaxWorkingWeightForCompletedExercise", () => {
-    const insertSets = (rows: string) =>
-      sqlite.exec(`
-        INSERT INTO exercises (exercise_id, name) VALUES (100, 'Bench Press');
-        INSERT INTO completed_workouts
-          (id, date_completed, local_date, duration, total_sets_completed)
-        VALUES (1, '2026-10-10T08:00:00.000Z', '2026-10-10', 600, 3);
-        INSERT INTO completed_exercises (id, completed_workout_id, exercise_id)
-        VALUES (1, 1, 100);
-        INSERT INTO completed_sets
-          (completed_exercise_id, set_number, weight, reps, is_warmup, is_deleted)
-        VALUES ${rows};
-      `);
-
-    it("returns the heaviest working set, ignoring warmups", async () => {
-      insertSets(
-        `(1, 1, 60, 10, 1, 0), (1, 2, 100, 5, 0, 0), (1, 3, 90, 5, 0, 0)`,
-      );
-
-      expect(await getMaxWorkingWeightForCompletedExercise(1)).toBe(100);
-    });
-
-    it("returns null without working sets", async () => {
-      insertSets(`(1, 1, 60, 10, 1, 0)`);
-
-      expect(await getMaxWorkingWeightForCompletedExercise(1)).toBeNull();
-    });
-
-    // Review Focus 3: the query has no is_deleted filter, so a deleted set
-    // would count. Not user-facing today: nothing calls this function, and
-    // history edits delete sets outright rather than flagging them.
-    it.failing("ignores a deleted set", async () => {
-      insertSets(`(1, 1, 100, 5, 0, 0), (1, 2, 120, 5, 0, 1)`);
-
-      expect(await getMaxWorkingWeightForCompletedExercise(1)).toBe(100);
-    });
   });
 
   describe("getPendingRecoveryCheckIns", () => {

@@ -204,30 +204,6 @@ export const setDeloadWeek = async (
   }
 };
 
-export const getMaxWorkingWeightForCompletedExercise = async (
-  completedExerciseId: number,
-): Promise<number | null> => {
-  let db: SQLite.SQLiteDatabase | undefined;
-  try {
-    db = await openDatabase("userData.db");
-    const row = await db.getFirstAsync<{ weight: number }>(
-      `SELECT MAX(weight) AS weight
-       FROM completed_sets
-       WHERE completed_exercise_id = ?
-         AND is_warmup = 0
-         AND weight IS NOT NULL`,
-      [completedExerciseId],
-    );
-    return row?.weight ?? null;
-  } catch (error: any) {
-    console.error("Error fetching max working weight:", error);
-    notifyBugsnag(error);
-    throw error;
-  } finally {
-    if (db) await db.closeAsync();
-  }
-};
-
 export const insertExerciseFeedback = async (
   payload: ExerciseFeedbackPayload,
 ): Promise<number> => {
