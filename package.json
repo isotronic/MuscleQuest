@@ -18,7 +18,9 @@
     "eas-build-on-success": "node scripts/bugsnag-eas-upload.js",
     "extract": "lingui extract",
     "compile": "lingui compile",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-musclequest \"jest --config jest.rules.config.js\""
+    "test:rules": "firebase emulators:exec --only firestore --project demo-musclequest \"jest --config jest.rules.config.js\"",
+    "test:e2e": "eas workflow:run .eas/workflows/e2e-android.yml",
+    "test:e2e-existing": "sh -c 'eas workflow:run .eas/workflows/e2e-android-test.yml -F build_id=\"$0\"'"
   },
   "jest": {
     "preset": "jest-expo",
