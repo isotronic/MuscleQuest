@@ -2,6 +2,23 @@
 # then switch the weight unit and see it converted.
 appId: com.isotronic.musclequest
 ---
+# Start from lbs whatever the device locale picked, so 180 converts to 81.6 kg.
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "menu-settings"
+- tapOn:
+    id: "settings-units"
+- tapOn:
+    id: "setting-weight-unit"
+- tapOn:
+    id: "setting-option-lbs"
+- tapOn:
+    id: "settings-modal-save"
+- back
+- back
+- tapOn:
+    id: "tab-home"
 - scrollUntilVisible:
     element:
       id: "measurement-input-1"

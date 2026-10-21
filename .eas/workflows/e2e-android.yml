@@ -52,7 +52,11 @@ jobs:
           adb wait-for-device
           adb shell "setprop persist.sys.locale de-DE; setprop ctl.restart zygote"
           adb wait-for-device
-          until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ]; do sleep 2; done
+          # sys.boot_completed can still read 1 from before the restart, so
+          # also wait for the new locale and a package manager that answers.
+          until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ] \
+            && [ "$(adb shell getprop persist.sys.locale | tr -d '\r')" = "de-DE" ] \
+            && adb shell pm path android > /dev/null 2>&1; do sleep 2; done
       - name: Run the German suite
         if: ${{ inputs.suite == 'full' }}
         run: maestro test .maestro/german.yml --debug-output maestro-debug
