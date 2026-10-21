@@ -76,6 +76,22 @@ describe("runSeedingSteps", () => {
 
     expect(order).toEqual(["copy", "plans", "flags", "refresh", "plans v3"]);
   });
+
+  it("hands the plan progress on to the newest plans", async () => {
+    (loadPremadePlans as jest.Mock).mockResolvedValue({ done: 7, total: 10 });
+    const onProgress = jest.fn();
+
+    await runSeedingSteps(onProgress);
+
+    const [report, from] = (loadPremadePlansV3 as jest.Mock).mock.calls[0];
+    expect(from).toEqual({ done: 7, total: 10 });
+    report(8, 10);
+    expect(onProgress).toHaveBeenCalledWith({
+      stage: "plans",
+      done: 8,
+      total: 10,
+    });
+  });
 });
 
 describe("startFirstLaunchSeeding", () => {

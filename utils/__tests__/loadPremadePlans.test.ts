@@ -315,18 +315,20 @@ it("reports one progress step per plan file on a fresh install", async () => {
   });
   const onProgress = jest.fn();
 
-  await loadPremadePlans(onProgress);
+  const reached = await loadPremadePlans(onProgress);
 
+  // The total includes the 3 files loadPremadePlansV3 loads later.
   expect(onProgress.mock.calls).toEqual([
-    [0, 7],
-    [1, 7],
-    [2, 7],
-    [3, 7],
-    [4, 7],
-    [5, 7],
-    [6, 7],
-    [7, 7],
+    [0, 10],
+    [1, 10],
+    [2, 10],
+    [3, 10],
+    [4, 10],
+    [5, 10],
+    [6, 10],
+    [7, 10],
   ]);
+  expect(reached).toEqual({ done: 7, total: 10 });
 });
 
 it("reports no progress when the plans are already loaded", async () => {
@@ -379,6 +381,19 @@ describe("loadPremadePlansV3", () => {
       [1, 3],
       [2, 3],
       [3, 3],
+    ]);
+  });
+
+  it("carries on the bar loadPremadePlans started", async () => {
+    atSyncVersion("8");
+    const onProgress = jest.fn();
+
+    await loadPremadePlansV3(onProgress, { done: 7, total: 10 });
+
+    expect(onProgress.mock.calls).toEqual([
+      [8, 10],
+      [9, 10],
+      [10, 10],
     ]);
   });
 

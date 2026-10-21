@@ -31,16 +31,15 @@ export const runSeedingSteps = async (
     onProgress &&
       ((done, total) => onProgress({ stage: "exercises", done, total })),
   );
-  await loadPremadePlans(
+  const reportPlans =
     onProgress &&
-      ((done, total) => onProgress({ stage: "plans", done, total })),
-  );
+    ((done: number, total: number) =>
+      onProgress({ stage: "plans", done, total }));
+  // Both plan steps fill one bar: the second carries on from the first.
+  const plansProgress = await loadPremadePlans(reportPlans);
   await syncExerciseFlagsFromAppData();
   await refreshLibraryFromAppData();
-  await loadPremadePlansV3(
-    onProgress &&
-      ((done, total) => onProgress({ stage: "plans", done, total })),
-  );
+  await loadPremadePlansV3(reportPlans, plansProgress);
 };
 
 const setStatus = (status: "running" | "done" | "failed") =>
