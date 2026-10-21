@@ -360,6 +360,7 @@ export function WorkoutHistoryEditor({
             ) : (
               <AppIconButton
                 accessibilityLabel={t`Save changes`}
+                testID="history-save"
                 icon="content-save-outline"
                 size={35}
                 style={styles.saveButton}
@@ -675,6 +676,7 @@ function SetValueInputs({
                 ? t`Weight in ${weightUnit}, set ${set.set_number}`
                 : t`Assistance in ${weightUnit}, set ${set.set_number}`
             }
+            testID="history-weight-input"
             style={styles.input}
             placeholder={t`Weight`}
             value={weight}

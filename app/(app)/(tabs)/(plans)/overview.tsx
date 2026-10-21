@@ -324,6 +324,7 @@ export default function PlanOverviewScreen() {
                 />
                 <AppIconButton
                   accessibilityLabel={t`Delete plan`}
+                  testID="plan-delete"
                   accessibilityHint={t`Deletes this plan. Your workout history is kept.`}
                   icon="trash-can-outline"
                   size={25}
@@ -531,6 +532,7 @@ export default function PlanOverviewScreen() {
               setIsEditing(false);
             }
           }}
+          testID="plan-edit"
           style={styles.paperButton}
           labelStyle={styles.buttonLabel}
           disabled={isEditing}

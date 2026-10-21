@@ -185,6 +185,7 @@ export default function TodayCard({
       <Button
         mode={restDay ? "outlined" : "contained"}
         icon="play"
+        testID="today-start"
         onPress={() => onStart(workout, workoutIndex)}
         disabled={disabled}
         style={styles.startButton}

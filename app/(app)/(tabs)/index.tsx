@@ -379,6 +379,7 @@ export default function HomeScreen() {
             <Pressable
               accessibilityRole="button"
               style={[styles.workoutCard, styles.resumeCard]}
+              testID="home-resume-workout"
               onPress={resumeActiveWorkout}
             >
               <View style={styles.workoutCardContent}>

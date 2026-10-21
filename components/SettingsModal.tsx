@@ -217,6 +217,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <View key={option} style={styles.radioItem}>
                       <RadioButton
                         value={option}
+                        testID={`setting-option-${option}`}
                         {...checkboxLabel(optionLabels?.[option] ?? option)}
                       />
                       <ThemedText {...checkboxCaptionA11y}>
@@ -305,6 +306,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </Button>
                 <Button
                   mode="contained"
+                  testID="settings-modal-save"
                   onPress={
                     settingType === "restTime"
                       ? handleSaveRestTime

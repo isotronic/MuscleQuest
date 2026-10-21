@@ -107,6 +107,7 @@ export function ExerciseSessionHeader({
           adjustsFontSizeToFit
           minimumFontScale={0.7}
           ellipsizeMode="tail"
+          testID="session-exercise-name"
         >
           {exerciseName}
         </ThemedText>

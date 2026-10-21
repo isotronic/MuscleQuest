@@ -134,6 +134,7 @@ export default function SettingsScreen() {
                 key={screen.id}
                 icon={screen.icon}
                 title={_(screen.title)}
+                testID={`settings-${screen.id}`}
                 onPress={() => openScreen(screen.id)}
                 trailing={
                   <AppIcon

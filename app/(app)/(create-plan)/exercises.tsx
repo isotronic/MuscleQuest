@@ -308,6 +308,7 @@ export default function ExercisesScreen() {
               mode="outlined"
               compact
               style={styles.bottomButton}
+              testID="exercise-picker-create"
               onPress={() => {
                 router.push("/(app)/custom-exercise");
               }}

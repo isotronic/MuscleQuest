@@ -237,6 +237,7 @@ export default function PlateInventoryScreen() {
         <View style={styles.addRow}>
           <DecimalInput
             accessibilityLabel={t`Weight in ${weightUnit}`}
+            testID="plate-weight-input"
             style={styles.input}
             value={newWeight}
             onChangeValue={setNewWeight}
@@ -247,6 +248,7 @@ export default function PlateInventoryScreen() {
           <TouchableOpacity
             accessibilityRole="button"
             style={[styles.addButton, !newWeight && styles.addButtonDisabled]}
+            testID="plate-add"
             onPress={addPlate}
             disabled={!newWeight}
           >
@@ -267,6 +269,7 @@ export default function PlateInventoryScreen() {
           </Button>
           <Button
             mode="contained"
+            testID="plate-save"
             onPress={handleDone}
             buttonColor={colors.accent}
             textColor={colors.onAccent}

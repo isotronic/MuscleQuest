@@ -43,6 +43,7 @@ export function ActivePlanAction({
   return (
     <Button
       mode="contained"
+      testID="plan-activate"
       onPress={onActivate}
       disabled={disabled}
       style={style}

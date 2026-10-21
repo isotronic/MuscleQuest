@@ -422,6 +422,7 @@ export default function SessionSetInfo({
               value={displayValue}
               onChange={handleTimeInputChange}
               accessibilityLabel={t`Time, set ${setNumber}`}
+              testID="set-time-input"
               style={styles.input}
             />
           </View>
@@ -468,6 +469,7 @@ export default function SessionSetInfo({
               placeholderTextColor={colors.contentPrimary}
               value={distance}
               accessibilityLabel={t`Distance in ${distanceUnit}, set ${setNumber}`}
+              testID="set-distance-input"
               onChangeValue={handleDistanceInputChange}
               selectTextOnFocus
               style={styles.input}

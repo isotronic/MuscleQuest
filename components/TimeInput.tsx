@@ -17,6 +17,8 @@ interface TimeInputProps {
   ref?: React.Ref<TextInput>;
   /** Done on the keyboard in the second field. */
   onSubmitEditing?: () => void;
+  /** E2E id; the fields get `-first` and `-second` appended. */
+  testID?: string;
 }
 
 function parseValue(value: string): { minutes: string; seconds: string } {
@@ -48,6 +50,7 @@ export const TimeInput = ({
   fields = "minutesSeconds",
   ref,
   onSubmitEditing,
+  testID,
 }: TimeInputProps) => {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -123,6 +126,7 @@ export const TimeInput = ({
         selectTextOnFocus
         maxLength={2}
         accessibilityLabel={firstFieldLabel}
+        testID={testID && `${testID}-first`}
         style={[style, styles.minutesField]}
       />
       <Text
@@ -144,6 +148,7 @@ export const TimeInput = ({
         selectTextOnFocus
         maxLength={2}
         accessibilityLabel={secondFieldLabel}
+        testID={testID && `${testID}-second`}
         returnKeyType={onSubmitEditing ? "done" : undefined}
         onSubmitEditing={onSubmitEditing}
         style={[style, styles.secondsField]}

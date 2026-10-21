@@ -673,6 +673,7 @@ export default function WorkoutOverviewScreen() {
                 anchor={
                   <AppIconButton
                     accessibilityLabel={t`Options for ${exercise.name}`}
+                    testID={`workout-exercise-menu-${exerciseIndex}`}
                     icon="dots-vertical"
                     size={24}
                     onPress={() => handleMenuOpen(exerciseIndex)}
@@ -687,6 +688,7 @@ export default function WorkoutOverviewScreen() {
                     handleDeleteExercise(exerciseIndex);
                   }}
                   title={t`Delete`}
+                  testID="exercise-menu-delete"
                 />
                 <Menu.Item
                   onPress={() => {
@@ -694,16 +696,19 @@ export default function WorkoutOverviewScreen() {
                     handleReplaceExercise(exerciseIndex);
                   }}
                   title={t`Replace`}
+                  testID="exercise-menu-replace"
                 />
                 {exercise.supersetGroupId ? (
                   <Menu.Item
                     onPress={() => handleRemoveSuperset(exerciseIndex)}
                     title={t`Remove Superset`}
+                    testID="exercise-menu-remove-superset"
                   />
                 ) : (
                   <Menu.Item
                     onPress={() => handleCreateSuperset(exerciseIndex)}
                     title={t`Create Superset`}
+                    testID="exercise-menu-create-superset"
                   />
                 )}
               </Menu>
@@ -1081,6 +1086,7 @@ export default function WorkoutOverviewScreen() {
                 anchor={
                   <AppIconButton
                     accessibilityLabel={t`Workout options`}
+                    testID="workout-options"
                     icon="dots-vertical"
                     size={24}
                     onPressIn={() => handleMenuOpen(69420)}
@@ -1101,6 +1107,7 @@ export default function WorkoutOverviewScreen() {
                       ? t`Show one set at a time`
                       : t`Show sets as a list`
                   }
+                  testID="workout-options-logging-style"
                 />
                 <Menu.Item
                   onPress={() => {
@@ -1108,6 +1115,7 @@ export default function WorkoutOverviewScreen() {
                     handleRestartWorkout();
                   }}
                   title={t`Restart`}
+                  testID="workout-options-restart"
                 />
                 <Menu.Item
                   onPress={() => {
@@ -1115,6 +1123,7 @@ export default function WorkoutOverviewScreen() {
                     handleCancelWorkout();
                   }}
                   title={t`Discard workout`}
+                  testID="workout-options-discard"
                 />
               </Menu>
             </View>
@@ -1138,6 +1147,7 @@ export default function WorkoutOverviewScreen() {
           </ThemedText>
           <TextInput
             accessibilityLabel={t`Workout name`}
+            testID="save-workout-name"
             style={styles.saveModalInput}
             placeholder={t`Workout name`}
             placeholderTextColor={colors.contentSecondary}
@@ -1156,6 +1166,7 @@ export default function WorkoutOverviewScreen() {
             <Button
               mode="contained"
               theme={{ colors: { primary: colors.accent } }}
+              testID="save-workout-save"
               onPress={async () => {
                 // The fallback is stored in English and translated on display.
                 const name = saveWorkoutName.trim() || QUICK_WORKOUT_NAME;

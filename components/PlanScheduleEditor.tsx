@@ -116,6 +116,7 @@ export default function PlanScheduleEditor({
                   hasWorkout && styles.dayTileActive,
                   disabled && styles.dayTileDisabled,
                 ]}
+                testID={`schedule-day-${dow}`}
                 onPress={() => !disabled && setPickerDow(dow)}
                 disabled={disabled}
                 accessibilityState={{ disabled }}
@@ -157,6 +158,7 @@ export default function PlanScheduleEditor({
                 <Pressable
                   accessibilityRole="button"
                   key={idx}
+                  testID={`schedule-workout-${idx}`}
                   style={[
                     styles.pickerItem,
                     isSelected && styles.pickerItemSelected,

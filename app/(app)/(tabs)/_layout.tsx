@@ -108,6 +108,7 @@ export default function TabLayout() {
           }}
           options={{
             title: t`More`,
+            tabBarButtonTestID: "tab-more",
             tabBarBadge:
               pendingRequests.length > 0 ? pendingRequests.length : undefined,
             tabBarIcon: ({ color, focused }) => (

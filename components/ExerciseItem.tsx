@@ -59,6 +59,7 @@ const ExerciseItem = ({
       <TouchableOpacity
         onPress={() => onPress(item)}
         style={styles.exerciseRow}
+        testID="exercise-row"
         accessibilityRole="button"
         accessibilityLabel={`${item.name}, ${bodyPartLabel}, ${equipmentLabel}`}
       >
