@@ -33,5 +33,7 @@ const { createLinguiMetroTransformer } = require(
   path.join(sharedDir, sharedFile),
 );
 
-const transform = createLinguiMetroTransformer(upstreamTransformer);
-module.exports = { transform };
+// Since 6.10 this returns { transform, getCacheKey } rather than the transform.
+const { transform, getCacheKey } =
+  createLinguiMetroTransformer(upstreamTransformer);
+module.exports = { transform, getCacheKey };
