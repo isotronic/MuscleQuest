@@ -9,6 +9,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { StarterPlanList } from "@/components/StarterPlanList";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { confirmStartWorkout } from "@/utils/startWorkout";
+import { openPlanOverview } from "@/utils/planNavigation";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -49,14 +50,7 @@ export default function GetStartedScreen() {
           <Trans>Pick a plan to follow, or start training right away.</Trans>
         </ThemedText>
         <StarterPlanList
-          onSelect={(planId) => {
-            // The plans list goes under the overview, so Back lands there.
-            router.replace("/(app)/(tabs)/(plans)");
-            router.push({
-              pathname: "/(app)/(tabs)/(plans)/overview",
-              params: { planId: String(planId) },
-            });
-          }}
+          onSelect={(planId) => openPlanOverview(planId, { replace: true })}
         />
         <View style={styles.actions}>
           <Button

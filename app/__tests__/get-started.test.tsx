@@ -88,16 +88,15 @@ describe("GetStartedScreen", () => {
   it("opens a starter plan", async () => {
     const { getByText } = render(<GetStartedScreen />);
     await press(getByText, "Full body plan");
-    // The plans list goes under the overview, so Back lands there.
-    expect(router.replace).toHaveBeenCalledWith("/(app)/(tabs)/(plans)");
-    expect(router.push).toHaveBeenCalledWith({
-      pathname: "/(app)/(tabs)/(plans)/overview",
-      params: { planId: "42" },
-    });
-    // The list first, then the overview on top of it.
-    expect(
-      (router.replace as jest.Mock).mock.invocationCallOrder[0],
-    ).toBeLessThan((router.push as jest.Mock).mock.invocationCallOrder[0]);
+    // One anchored replace: the plans list mounts under the overview.
+    expect(router.replace).toHaveBeenCalledWith(
+      {
+        pathname: "/(app)/(tabs)/(plans)/overview",
+        params: { planId: "42" },
+      },
+      { withAnchor: true },
+    );
+    expect(router.push).not.toHaveBeenCalled();
   });
 
   it("starts a quick workout from home", async () => {

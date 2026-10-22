@@ -8,7 +8,11 @@ import Onboarding, {
 import { useAllPlansQuery } from "@/hooks/useAllPlansQuery";
 
 const mockPush = jest.fn();
-jest.mock("expo-router", () => ({ useRouter: () => ({ push: mockPush }) }));
+const mockRouterPush = jest.fn();
+jest.mock("expo-router", () => ({
+  useRouter: () => ({ push: mockPush }),
+  router: { push: (...args: unknown[]) => mockRouterPush(...args) },
+}));
 jest.mock("@lingui/core/macro", () => ({
   t: (s: TemplateStringsArray) => s[0],
   msg: (s: TemplateStringsArray) => s[0],
@@ -111,10 +115,13 @@ describe("Onboarding", () => {
 
     fireEvent.press(getByText("3-Day Full Body"));
 
-    expect(mockPush).toHaveBeenCalledWith({
-      pathname: "/(app)/(tabs)/(plans)/overview",
-      params: { planId: "11" },
-    });
+    expect(mockRouterPush).toHaveBeenCalledWith(
+      {
+        pathname: "/(app)/(tabs)/(plans)/overview",
+        params: { planId: "11" },
+      },
+      { withAnchor: true },
+    );
   });
 
   it("offers a quick workout instead", () => {

@@ -9,7 +9,7 @@ import { useApplyProgressionMutation } from "@/hooks/useApplyProgressionMutation
 import { WorkoutProgressionStateRow } from "@/utils/database";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
-import { router } from "expo-router";
+import { openPlanOverview } from "@/utils/planNavigation";
 
 export function getRuleExplanation(
   ruleKey: string,
@@ -72,12 +72,15 @@ function formatLastProgression(isoDate: string | null | undefined): string {
 
 interface ProgressionSummaryCardProps {
   workoutId: number;
+  /** The plan the workout belongs to; the deload link opens its overview. */
+  planId?: number | null;
   weightUnit: string;
   isCurrentWeekDeload?: boolean;
 }
 
 export default function ProgressionSummaryCard({
   workoutId,
+  planId,
   weightUnit,
   isCurrentWeekDeload = false,
 }: ProgressionSummaryCardProps) {
@@ -166,17 +169,17 @@ export default function ProgressionSummaryCard({
                 you recover and come back stronger.
               </Trans>
             </ThemedText>
-            <Button
-              mode="text"
-              compact
-              textColor={colors.accent}
-              onPress={() =>
-                router.push("/(app)/(tabs)/(plans)/overview" as any)
-              }
-              style={styles.deloadButton}
-            >
-              <Trans>View Deload Option</Trans>
-            </Button>
+            {planId != null && (
+              <Button
+                mode="text"
+                compact
+                textColor={colors.accent}
+                onPress={() => openPlanOverview(planId)}
+                style={styles.deloadButton}
+              >
+                <Trans>View Deload Option</Trans>
+              </Button>
+            )}
           </View>
         </>
       )}

@@ -2,6 +2,7 @@ import React from "react";
 import { Text } from "react-native";
 import { router, Slot } from "expo-router";
 import { act, renderRouter, screen } from "expo-router/testing-library";
+import { openPlanOverview } from "@/utils/planNavigation";
 
 jest.mock("@lingui/core/macro", () => ({
   t: (strings: TemplateStringsArray) => strings.join(""),
@@ -45,13 +46,7 @@ describe("tabs initial route", () => {
 
   it("puts the plans list under an overview opened from Get started", () => {
     renderRouter(routes, { initialUrl: "/get-started" });
-    act(() => {
-      router.replace("/(app)/(tabs)/(plans)");
-      router.push({
-        pathname: "/(app)/(tabs)/(plans)/overview",
-        params: { planId: "1" },
-      });
-    });
+    act(() => openPlanOverview(1, { replace: true }));
     expect(screen.getByText("Overview screen")).toBeTruthy();
     act(() => router.back());
     expect(screen.getByText("Plans screen")).toBeTruthy();
