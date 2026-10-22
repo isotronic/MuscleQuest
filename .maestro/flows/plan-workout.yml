@@ -25,6 +25,22 @@ appId: com.isotronic.musclequest
     visible:
       id: "rest-countdown"
     timeout: 15000
+# A fresh install may not set exact alarms, so the first rest offers to allow
+# them. Allow them in Android's settings (English text, as below), so the rest
+# notification later arrives on time instead of within Android's inexact
+# window, which can run minutes past the rest.
+- extendedWaitUntil:
+    visible:
+      id: "rest-hint-action"
+    timeout: 10000
+- tapOn:
+    id: "rest-hint-action"
+- tapOn: "Allow setting alarms and reminders"
+- back
+- extendedWaitUntil:
+    visible:
+      id: "rest-countdown"
+    timeout: 15000
 - tapOn:
     id: "rest-add"
 - tapOn:
@@ -40,7 +56,7 @@ appId: com.isotronic.musclequest
       REPS: "10"
 # Two of several sets are done, so rest starts again. Cut it to under 30
 # seconds and let it end with the app in the background: the rest
-# notification (exact alarm) must arrive.
+# notification (now an exact alarm) must arrive.
 - extendedWaitUntil:
     visible:
       id: "rest-countdown"
