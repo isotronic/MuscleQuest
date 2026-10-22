@@ -278,14 +278,19 @@ describe("useSaveCompletedWorkoutMutation", () => {
     });
   });
 
-  it("onSuccess invalidates globalExerciseHistoryForSession", () => {
+  it("onSuccess invalidates the session history behind last time and prefills", () => {
     useSaveCompletedWorkoutMutation("lbs", "ft");
 
     capturedArgs.onSuccess();
 
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["globalExerciseHistoryForSession", "lbs", "ft"],
-    });
+    const keys = mockInvalidateQueries.mock.calls.map((c) => c[0].queryKey);
+    expect(keys).toEqual(
+      expect.arrayContaining([
+        ["workoutSessionHistory"],
+        ["globalExerciseHistoryForSession"],
+        ["exerciseHistory"],
+      ]),
+    );
   });
 
   it("onSuccess invalidates exerciseDetail so the exercise screen refetches", () => {
