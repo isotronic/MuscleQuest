@@ -5,12 +5,15 @@ blocks live in `flows/`; the top-level files are the suites:
 
 | Suite | Contents |
 |---|---|
-| `smoke.yml` | Starter plan, plan workout with the rest timer, quick workout that survives the app being killed |
+| `smoke.yml` | Starter plan, plan workout with the rest timer (one rest ends with the app in the background and must notify), quick workout that survives the app being killed |
 | `full.yml` | Everything, chained on one install; each flow starts and ends on home |
 | `german.yml` | Onboarding and the quick workout on a German device |
+| `upgrade-before.yml`, `upgrade-after.yml` | A workout left in progress on an old build resumes after a new build is installed over it; run through `scripts/e2e-upgrade-install.sh` |
 
 Selectors use `testID`s. Text is only used for names the flows type
-themselves, entered or converted values, and the German welcome check.
+themselves, entered or converted values, the German welcome check, and
+Android's own UI (the rest notification in the shade, the folder picker in
+`export-data.yml`), so `full.yml` needs an English device.
 
 ## Running
 
@@ -36,8 +39,21 @@ property 'ErrorBoundary' of undefined" and was rolled back. Rebuild instead.
 ```
 adb install -r android/app/build/outputs/apk/release/app-release.apk
 adb shell settings put secure immersive_mode_confirmations confirmed
-~/.maestro/bin/maestro test .maestro/full.yml
+~/.maestro/bin/maestro test .maestro/full.yml --test-output-dir <dir>
 ```
+
+Do not build while the emulator runs: together they exhaust the RAM on a
+14 GB machine. Build, then boot the emulator.
+
+Upgrade install, with two APKs signed with the same key (local builds are):
+
+```
+scripts/e2e-upgrade-install.sh old.apk new.apk
+```
+
+It uninstalls the app, installs the old APK, leaves a plan workout in progress
+with one set logged, installs the new APK over it, and checks the workout
+resumes on the right set and finishes.
 
 For `german.yml`, switch the emulator first: `adb root`, wait until
 `adb shell whoami` prints `root`, then
@@ -47,6 +63,11 @@ zygote restart Maestro stopped seeing React Native `Modal` windows (the
 weekly-goal settings modal) until a full reboot.
 
 ## Later
+
+- **Drag to reorder.** Maestro has no long-press-then-drag gesture, so the
+  plan editor's drag to reorder (react-native-sortables) is checked by hand.
+  `adb shell input draganddrop <x1> <y1> <x2> <y2> 1500` may do it from a
+  script.
 
 - **Stale workout prompt.** Move the emulator clock forward a few hours (needs
   root) after starting a workout, relaunch, and check the resume, finish or

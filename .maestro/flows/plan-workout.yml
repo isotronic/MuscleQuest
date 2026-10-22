@@ -1,5 +1,6 @@
 # From home with an active plan: start today's workout, log two sets with the
-# rest timer in between, finish, and see the week's goal move.
+# rest timer in between, let the second rest end in the background, finish,
+# and see the week's goal move.
 appId: com.isotronic.musclequest
 ---
 - scrollUntilVisible:
@@ -37,13 +38,45 @@ appId: com.isotronic.musclequest
     env:
       WEIGHT: "40"
       REPS: "10"
-# Two of several sets are done, so rest starts again.
+# Two of several sets are done, so rest starts again. Cut it to under 30
+# seconds and let it end with the app in the background: the rest
+# notification (exact alarm) must arrive.
 - extendedWaitUntil:
     visible:
-      id: "rest-skip"
+      id: "rest-countdown"
     timeout: 15000
-- tapOn:
-    id: "rest-skip"
+# Only while 30 seconds or more are left, so a tap never ends the rest.
+- repeat:
+    times: 20
+    while:
+      visible:
+        id: "rest-countdown"
+        text: "[1-9][0-9]*:[0-9][0-9]|0:[3-5][0-9]"
+    commands:
+      - tapOn:
+          id: "rest-remove"
+- pressKey: Home
+# The notification shade is Android UI, so the notification is matched by its
+# English title; the suite runs on an English device.
+- swipe:
+    start: 50%, 1%
+    end: 50%, 70%
+- extendedWaitUntil:
+    visible: "Rest Timer Finished!"
+    timeout: 90000
+- tapOn: "Rest Timer Finished!"
+- extendedWaitUntil:
+    visible:
+      id: "session-current-set"
+    timeout: 15000
 - back
+# Coming back from the notification can focus an input, and then the first
+# Back only closes the keyboard.
+- runFlow:
+    when:
+      notVisible:
+        id: "workout-finish"
+    commands:
+      - back
 - runFlow: finish-workout.yml
 - runFlow: close-summary.yml

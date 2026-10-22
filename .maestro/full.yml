@@ -9,6 +9,7 @@ appId: com.isotronic.musclequest
 - runFlow: flows/start-with-plan.yml
 - runFlow: flows/plan-workout.yml
 - runFlow: flows/quick-workout.yml
+- runFlow: flows/export-data.yml
 - runFlow: flows/progression.yml
 - runFlow: flows/plan-overview-actions.yml
 - runFlow: flows/superset-session.yml

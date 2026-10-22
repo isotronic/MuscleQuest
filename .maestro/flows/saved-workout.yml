@@ -75,8 +75,12 @@ appId: com.isotronic.musclequest
     id: "note-input"
 - inputText: "E2E session note"
 - hideKeyboard
-- tapOn:
-    id: "note-close"
+# Pan the sheet down to close it (gesture handler); closing saves the note.
+- swipe:
+    from:
+      id: "note-close"
+    direction: DOWN
+    duration: 400
 - extendedWaitUntil:
     visible:
       id: "session-note-edit"
