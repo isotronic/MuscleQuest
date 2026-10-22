@@ -25,22 +25,29 @@ appId: com.isotronic.musclequest
     visible:
       id: "rest-countdown"
     timeout: 15000
-# A fresh install may not set exact alarms, so the first rest offers to allow
-# them. Allow them in Android's settings (English text, as below), so the rest
-# notification later arrives on time instead of within Android's inexact
-# window, which can run minutes past the rest.
+# Without exact alarms, the first rest offers to allow them. Allow them in
+# Android's settings (English text, as below), so the rest notification later
+# arrives on time instead of within Android's inexact window, which can run
+# minutes past the rest. Android keeps the permission across reinstalls and
+# cleared data, so after the first run there is no offer.
 - extendedWaitUntil:
     visible:
       id: "rest-hint-action"
-    timeout: 10000
-- tapOn:
-    id: "rest-hint-action"
-- tapOn: "Allow setting alarms and reminders"
-- back
-- extendedWaitUntil:
-    visible:
-      id: "rest-countdown"
-    timeout: 15000
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: "rest-hint-action"
+    commands:
+      - tapOn:
+          id: "rest-hint-action"
+      - tapOn: "Allow setting alarms and reminders"
+      - back
+      - extendedWaitUntil:
+          visible:
+            id: "rest-countdown"
+          timeout: 15000
 - tapOn:
     id: "rest-add"
 - tapOn:
@@ -54,23 +61,15 @@ appId: com.isotronic.musclequest
     env:
       WEIGHT: "40"
       REPS: "10"
-# Two of several sets are done, so rest starts again. Cut it to under 30
-# seconds and let it end with the app in the background: the rest
-# notification (now an exact alarm) must arrive.
+# Two of several sets are done, so rest starts again. Let it end with the app
+# in the background: the rest notification (now an exact alarm) must arrive.
+# The rest is not shortened first: taps on the session screen can take many
+# seconds each (Maestro waits for the screen to settle), long enough to end a
+# short rest in the app, which rightly drops the notification.
 - extendedWaitUntil:
     visible:
       id: "rest-countdown"
     timeout: 15000
-# Only while 30 seconds or more are left, so a tap never ends the rest.
-- repeat:
-    times: 20
-    while:
-      visible:
-        id: "rest-countdown"
-        text: "[1-9][0-9]*:[0-9][0-9]|0:[3-5][0-9]"
-    commands:
-      - tapOn:
-          id: "rest-remove"
 - pressKey: Home
 # The notification shade is Android UI, so the notification is matched by its
 # English title; the suite runs on an English device.
@@ -79,7 +78,7 @@ appId: com.isotronic.musclequest
     end: 50%, 70%
 - extendedWaitUntil:
     visible: "Rest Timer Finished!"
-    timeout: 90000
+    timeout: 240000
 - tapOn: "Rest Timer Finished!"
 - extendedWaitUntil:
     visible:
