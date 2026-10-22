@@ -4,7 +4,7 @@ import {
   getFirestore,
   collection,
   getDocs,
-  FirebaseFirestoreTypes,
+  type QueryDocumentSnapshot,
 } from "@react-native-firebase/firestore";
 import { AuthContext } from "@/context/AuthProvider";
 import { SharedStandaloneWorkout } from "@/types/firestore";
@@ -33,8 +33,7 @@ export const useFriendSharedStandaloneWorkoutsQuery = (
           "friendSharedStandaloneWorkouts",
         );
         return snap.docs.map(
-          (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) =>
-            d.data() as SharedStandaloneWorkout,
+          (d: QueryDocumentSnapshot) => d.data() as SharedStandaloneWorkout,
         );
       } catch (error) {
         reportFirestoreReadError("friendSharedStandaloneWorkouts", error);

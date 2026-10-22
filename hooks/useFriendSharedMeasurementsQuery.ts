@@ -7,7 +7,7 @@ import {
   limit,
   orderBy,
   query,
-  FirebaseFirestoreTypes,
+  type QueryDocumentSnapshot,
 } from "@react-native-firebase/firestore";
 import { AuthContext } from "@/context/AuthProvider";
 import { SharedMeasurement } from "@/types/firestore";
@@ -38,8 +38,7 @@ export const useFriendSharedMeasurementsQuery = (friendUid: string | null) => {
           "friendSharedMeasurements",
         );
         return snap.docs.map(
-          (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) =>
-            d.data() as SharedMeasurement,
+          (d: QueryDocumentSnapshot) => d.data() as SharedMeasurement,
         );
       } catch (error) {
         reportFirestoreReadError("friendSharedMeasurements", error);

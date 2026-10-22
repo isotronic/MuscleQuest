@@ -11,7 +11,7 @@ import {
   limit,
   serverTimestamp,
   Timestamp,
-  FirebaseFirestoreTypes,
+  type DocumentReference,
 } from "@react-native-firebase/firestore";
 import pLimit from "p-limit";
 import { notifyBugsnag } from "./bugsnagDedup";
@@ -160,7 +160,7 @@ const assertWithinSizeBudget = (data: object): void => {
 // getDoc round trip. A null list means the listener has not hydrated yet, not
 // that nothing is published, so fall back to the read rather than guessing.
 const shouldSetPublishedAt = async (
-  ref: FirebaseFirestoreTypes.DocumentReference,
+  ref: DocumentReference,
   kind: "plan" | "standaloneWorkout",
   id: number,
 ): Promise<boolean> => {

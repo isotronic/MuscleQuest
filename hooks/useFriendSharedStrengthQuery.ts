@@ -4,7 +4,7 @@ import {
   getFirestore,
   collection,
   getDocs,
-  FirebaseFirestoreTypes,
+  type QueryDocumentSnapshot,
 } from "@react-native-firebase/firestore";
 import { AuthContext } from "@/context/AuthProvider";
 import { SharedStrengthPR } from "@/types/firestore";
@@ -29,8 +29,7 @@ export const useFriendSharedStrengthQuery = (friendUid: string | null) => {
           "friendSharedStrength",
         );
         return snap.docs.map(
-          (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) =>
-            d.data() as SharedStrengthPR,
+          (d: QueryDocumentSnapshot) => d.data() as SharedStrengthPR,
         );
       } catch (error) {
         reportFirestoreReadError("friendSharedStrength", error);

@@ -7,7 +7,7 @@ import {
   limit,
   orderBy,
   query,
-  FirebaseFirestoreTypes,
+  type QueryDocumentSnapshot,
 } from "@react-native-firebase/firestore";
 import { AuthContext } from "@/context/AuthProvider";
 import { SharedCompletedWorkout } from "@/types/firestore";
@@ -40,8 +40,7 @@ export const useFriendSharedCompletedWorkoutsQuery = (
           "friendSharedCompletedWorkouts",
         );
         return snap.docs.map(
-          (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) =>
-            d.data() as SharedCompletedWorkout,
+          (d: QueryDocumentSnapshot) => d.data() as SharedCompletedWorkout,
         );
       } catch (error) {
         reportFirestoreReadError("friendSharedCompletedWorkouts", error);
