@@ -652,6 +652,7 @@ export default function WorkoutOverviewScreen() {
                 <Sortable.Touchable
                   onTap={() => toggleExpanded(expandKey)}
                   style={styles.expandButton}
+                  testID={`workout-exercise-expand-${exerciseIndex}`}
                   accessible
                   accessibilityRole="button"
                   accessibilityState={{ expanded: isExpanded }}
