@@ -26,8 +26,13 @@ const mountScreen = () => {
 };
 
 beforeEach(() => {
+  jest.useFakeTimers();
   focusEffects.length = 0;
   setVisibility.mockClear();
+});
+
+afterEach(() => {
+  jest.useRealTimers();
 });
 
 describe("useWorkoutImmersiveMode", () => {
@@ -36,6 +41,7 @@ describe("useWorkoutImmersiveMode", () => {
     expect(lastVisibility()).toBe("hidden");
 
     blur?.();
+    jest.runAllTimers();
     expect(lastVisibility()).toBe("visible");
   });
 
@@ -46,21 +52,25 @@ describe("useWorkoutImmersiveMode", () => {
     // The navigator runs the new screen's focus before the old screen's blur.
     const blurSession = focusSession();
     blurOverview?.();
+    jest.runAllTimers();
     expect(lastVisibility()).toBe("hidden");
 
     blurSession?.();
+    jest.runAllTimers();
     expect(lastVisibility()).toBe("visible");
   });
 
-  it("keeps the bar hidden when the previous workout screen blurs first", () => {
+  it("does not flash the bar when the previous workout screen blurs first", () => {
     const blurOverview = mountScreen()();
     const focusSession = mountScreen();
 
     blurOverview?.();
     const blurSession = focusSession();
-    expect(lastVisibility()).toBe("hidden");
+    jest.runAllTimers();
+    expect(setVisibility).not.toHaveBeenCalledWith("visible");
 
     blurSession?.();
+    jest.runAllTimers();
     expect(lastVisibility()).toBe("visible");
   });
 });
