@@ -71,6 +71,9 @@ appId: com.isotronic.musclequest
 - scrollUntilVisible:
     element:
       id: "plate-save"
+# Maestro counts the button as visible while a three-button navigation bar
+# still covers it; scroll to the end of the screen.
+- scroll
 - tapOn:
     id: "plate-save"
 - back
