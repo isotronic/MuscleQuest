@@ -21,6 +21,7 @@ import { pushCustomExercise } from "@/utils/sharing";
 import { capitalizeWords } from "@/utils/utility";
 import { ThemedView } from "@/components/ThemedView";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWorkoutStore } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
@@ -33,6 +34,7 @@ import type { AppThemeColors } from "@/theme/types";
 export default function AddCustomExerciseScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
 
   const queryClient = useQueryClient();
   const navigation = useNavigation();
@@ -353,8 +355,12 @@ export default function AddCustomExerciseScreen() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
         style={{ flex: 1 }}
       >
+        {/* Edge-to-edge: keep Save at the end clear of the navigation bar. */}
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: 32 + insets.bottom },
+          ]}
           keyboardShouldPersistTaps="handled"
         >
           {/* ── Basics ─────────────────────────────────────── */}
@@ -622,7 +628,6 @@ function createStyles(colors: AppThemeColors) {
   return StyleSheet.create({
     scrollContent: {
       padding: 16,
-      paddingBottom: 32,
     },
     section: {
       paddingTop: 8,
