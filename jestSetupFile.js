@@ -5,6 +5,12 @@ jest.mock("@react-native-async-storage/async-storage", () =>
   require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
 );
 
+// Worklets (Reanimated's runtime) has no native part under Jest; since 0.7 it
+// throws on import unless its mock is used.
+jest.mock("react-native-worklets", () =>
+  require("react-native-worklets/lib/module/mock"),
+);
+
 // Mock NetInfo (native module); reports online by default
 jest.mock("@react-native-community/netinfo", () =>
   require("@react-native-community/netinfo/jest/netinfo-mock"),
