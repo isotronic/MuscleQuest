@@ -5,7 +5,7 @@ import {
   BottomSheetModal,
   BottomSheetBackdrop,
   BottomSheetTextInput,
-  BottomSheetView,
+  BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import { Trans } from "@lingui/react/macro";
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
@@ -104,17 +104,18 @@ export function MeasurementQuickLog() {
       />
       <AppBottomSheet
         ref={sheetRef}
-        snapPoints={["55%", "90%"]}
         enablePanDownToClose
         backdropComponent={renderBackdrop}
         handleIndicatorStyle={{ backgroundColor: colors.contentSecondary }}
       >
-        <BottomSheetView
-          style={[
+        {/* Sized to its content, so Log Entry sits above the system
+            navigation bar; scrolls when many metrics are shown. */}
+        <BottomSheetScrollView
+          contentContainerStyle={[
             styles.sheetContent,
-            // Clear the system navigation bar (three-button navigation).
             { paddingBottom: 32 + insets.bottom },
           ]}
+          keyboardShouldPersistTaps="handled"
         >
           <ThemedText type="subtitle" style={styles.sheetTitle}>
             <Trans>Log Measurements</Trans>
@@ -134,7 +135,7 @@ export function MeasurementQuickLog() {
               inputComponent={SheetInput}
             />
           </View>
-        </BottomSheetView>
+        </BottomSheetScrollView>
       </AppBottomSheet>
     </>
   );
