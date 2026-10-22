@@ -56,7 +56,8 @@ Upgrade install, with two APKs signed with the same key (local builds are):
 scripts/e2e-upgrade-install.sh old.apk new.apk
 ```
 
-It uninstalls the app, installs the old APK, leaves a plan workout in progress
+It refuses to run unless the adb device is an emulator, then uninstalls the
+app, installs the old APK, leaves a plan workout in progress
 with one set logged, installs the new APK over it, and checks the workout
 resumes on the right set and finishes.
 
@@ -70,9 +71,11 @@ weekly-goal settings modal) until a full reboot.
 ## Later
 
 - **Drag to reorder.** Maestro has no long-press-then-drag gesture, so the
-  plan editor's drag to reorder (react-native-sortables) is checked by hand.
-  `adb shell input draganddrop <x1> <y1> <x2> <y2> 1500` may do it from a
-  script.
+  plan editor's drag to reorder (react-native-sortables) is checked by hand
+  at each SDK gate. With two exercises in a plan's workout,
+  `adb shell input draganddrop <x1> <y1> <x2> <y2> 2000` from the lower row's
+  drag handle to above the upper row swaps them (checked on SDK 55); read the
+  order with `maestro hierarchy`. A script could automate it.
 
 - **Stale workout prompt.** Move the emulator clock forward a few hours (needs
   root) after starting a workout, relaunch, and check the resume, finish or

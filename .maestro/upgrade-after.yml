@@ -20,6 +20,8 @@ appId: com.isotronic.musclequest
 - assertVisible:
     id: "overview-set-check-0-1"
     checked: false
+# The values logged on the old build came through, not just the check mark.
+- assertVisible: "60 (lbs|kg) × 8"
 - tapOn:
     id: "workout-exercise-0"
 - extendedWaitUntil:

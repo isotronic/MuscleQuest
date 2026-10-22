@@ -1,7 +1,8 @@
 # From home: screenshots of the main screens, to compare by eye against an
 # earlier run after an upgrade (icons, fonts, insets, layout). Assertions do
 # not catch those. Starts a quick workout for the session screens and
-# discards it.
+# discards it. create-plan.yml and measurements.yml add the plan editor and
+# the measurements screen.
 appId: com.isotronic.musclequest
 ---
 - takeScreenshot: screen-01-home
