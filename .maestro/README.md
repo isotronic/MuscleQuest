@@ -45,6 +45,11 @@ adb shell settings put secure immersive_mode_confirmations confirmed
 Do not build while the emulator runs: together they exhaust the RAM on a
 14 GB machine. Build, then boot the emulator.
 
+`flows/screenshots.yml` saves screenshots of the main screens under
+`<dir>/<run>/full/takeScreenshot/`. Keep a set from a known good build and
+compare a new run against it by eye (icons, fonts, insets, layout), for
+example after an SDK upgrade. Times and dates differ between runs.
+
 Upgrade install, with two APKs signed with the same key (local builds are):
 
 ```
