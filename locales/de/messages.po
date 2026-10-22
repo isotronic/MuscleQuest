@@ -553,6 +553,28 @@ msgstr ""
 "Die Sicherung schlug nach einem sauberen Beenden der App unbemerkt fehl, weil zusätzliche Datenbankdateien vorausgesetzt wurden, die nicht immer vorhanden sind. Sicherungen funktionieren jetzt auch in diesem Fall korrekt, und ein tatsächlicher Fehler bei der Sicherung wird jetzt als Meldung auf dem Bildschirm angezeigt, statt unbemerkt zu bleiben.\n"
 ""
 
+#: constants/WhatsNew.ts:974
+msgid ""
+"\n"
+"🐛 Fixed: Dates, Buttons & Help!\n"
+"\n"
+"• Day and month names on home, in your history and in the calendars now follow your phone's language, and times use its 12- or 24-hour clock.\n"
+"• On phones with navigation buttons, buttons at the bottom of the screen are no longer hidden behind them.\n"
+"• Starting a workout again right after finishing it now shows last time's values.\n"
+"• Choosing a plan while getting started no longer leaves the Plans tab stuck on that plan.\n"
+"• In Help & Info, tapping a topic at the top opens it, and search matches stay highlighted after Show more.\n"
+""
+msgstr ""
+"\n"
+"🐛 Behoben: Datumsangaben, Buttons & Hilfe!\n"
+"\n"
+"• Tages- und Monatsnamen auf dem Startbildschirm, im Verlauf und in den Kalendern folgen jetzt der Sprache deines Handys, und Uhrzeiten nutzen dessen 12- oder 24-Stunden-Format.\n"
+"• Auf Handys mit Navigationstasten werden Buttons am unteren Bildschirmrand nicht mehr von ihnen verdeckt.\n"
+"• Startest du ein Training direkt nach dem Beenden erneut, siehst du jetzt die Werte vom letzten Mal.\n"
+"• Wählst du beim Einstieg einen Plan, bleibt der Tab Pläne nicht mehr bei diesem Plan hängen.\n"
+"• In Hilfe & Info öffnet sich ein Thema, wenn du oben darauf tippst, und Suchtreffer bleiben nach Mehr anzeigen hervorgehoben.\n"
+""
+
 #: constants/WhatsNew.ts:641
 msgid ""
 "\n"
@@ -1778,7 +1800,7 @@ msgid "{0} Sets"
 msgstr "{0} Sätze"
 
 #. placeholder {0}: body.steps.length
-#: app/(app)/help.tsx:216
+#: app/(app)/help.tsx:289
 msgid "{0} steps — tap to view"
 msgstr "{0} Schritte – tippe zum Ansehen"
 
@@ -2091,7 +2113,7 @@ msgstr "+ Hinzufügen"
 msgid "+{increment}s"
 msgstr "+{increment}s"
 
-#: app/(app)/help.tsx:247
+#: app/(app)/help.tsx:324
 msgid "+{remaining} more steps"
 msgstr "+{remaining} weitere Schritte"
 
@@ -2194,11 +2216,11 @@ msgstr "Nur ein paar kurze Entscheidungen. Du kannst sie jederzeit in den Einste
 msgid "A few tips show on the home screen."
 msgstr "Auf dem Startbildschirm erscheinen ein paar Tipps."
 
-#: components/PlanPickerSheet.tsx:38
+#: components/PlanPickerSheet.tsx:39
 msgid "A gym"
 msgstr "Ein Fitnessstudio"
 
-#: components/PlanPickerSheet.tsx:33
+#: components/PlanPickerSheet.tsx:34
 msgid "A lot of experience"
 msgstr "Viel Erfahrung"
 
@@ -2917,7 +2939,7 @@ msgid "back"
 msgstr "Rücken"
 
 #: app/setup.tsx:354
-#: components/PlanPickerSheet.tsx:236
+#: components/PlanPickerSheet.tsx:245
 msgid "Back"
 msgstr "Zurück"
 
@@ -3298,19 +3320,19 @@ msgstr "Training auswählen"
 #~ msgid "Choose Workout"
 #~ msgstr "Training auswählen"
 
-#: app/(app)/help.tsx:387
-#: app/(app)/help.tsx:442
+#: app/(app)/help.tsx:474
+#: app/(app)/help.tsx:529
 #: app/(app)/settings/index.tsx:112
 msgid "Clear search"
 msgstr "Suche löschen"
 
-#: app/(app)/help.tsx:389
+#: app/(app)/help.tsx:476
 msgid "Clears the search field"
 msgstr "Löscht das Suchfeld"
 
 #: app/(app)/friends.tsx:198
 #: components/history/DatePickerModal.tsx:61
-#: components/NoteSheet.tsx:86
+#: components/NoteSheet.tsx:90
 #: components/PlateCalculatorModal.tsx:289
 #: components/stats/WorkoutCalendarModal.tsx:144
 #: components/WorkoutPickerModal.tsx:111
@@ -3330,7 +3352,7 @@ msgstr "Menü schließen"
 msgid "Closest"
 msgstr "Nächstliegend"
 
-#: components/PlanPickerSheet.tsx:63
+#: components/PlanPickerSheet.tsx:64
 msgid "Closest fit to your answers"
 msgstr "Passt am besten zu deinen Antworten"
 
@@ -3952,7 +3974,7 @@ msgstr "Beschreibung:"
 msgid "Details"
 msgstr "Details"
 
-#: app/(app)/help.tsx:452
+#: app/(app)/help.tsx:539
 msgid "Didn't find what you were looking for? Request it"
 msgstr "Nicht gefunden, was du gesucht hast? Anfragen"
 
@@ -4061,7 +4083,7 @@ msgstr "Nicht mehr erinnern"
 #: app/(app)/(workout)/workout-summary.tsx:693
 #: app/(app)/delete-account.tsx:315
 #: components/PrivacySettings.tsx:77
-#: components/RecoveryCheckInSheet.tsx:191
+#: components/RecoveryCheckInSheet.tsx:196
 #: components/stats/widgets/TrackedExercisesWidget.tsx:95
 msgid "Done"
 msgstr "Fertig"
@@ -4150,7 +4172,7 @@ msgstr "Kurzhantel-Gewichtsschritt"
 msgid "dumbbell, cable, both sides, volume"
 msgstr "Kurzhantel, Kabelzug, beide Seiten, Volumen"
 
-#: components/PlanPickerSheet.tsx:39
+#: components/PlanPickerSheet.tsx:40
 #: constants/premadePlanMeta.ts:134
 msgid "Dumbbells"
 msgstr "Kurzhanteln"
@@ -4901,7 +4923,7 @@ msgstr "Fr"
 msgid "Frequent"
 msgstr "Häufig"
 
-#: components/RecoveryCheckInSheet.tsx:30
+#: components/RecoveryCheckInSheet.tsx:31
 msgid "Fresh, fully recovered"
 msgstr "Frisch, vollständig erholt"
 
@@ -5163,7 +5185,7 @@ msgstr "Stunden"
 msgid "Hours"
 msgstr "Stunden"
 
-#: components/RecoveryCheckInSheet.tsx:155
+#: components/RecoveryCheckInSheet.tsx:160
 msgid "How are these muscles feeling since your last session?"
 msgstr "Wie fühlen sich diese Muskeln seit deiner letzten Einheit an?"
 
@@ -5184,7 +5206,7 @@ msgstr "Wie hat sich dieser Satz angefühlt?"
 msgid "How it works"
 msgstr "So funktioniert es"
 
-#: components/PlanPickerSheet.tsx:157
+#: components/PlanPickerSheet.tsx:166
 msgid "How many days a week can you train?"
 msgstr "An wie vielen Tagen pro Woche kannst du trainieren?"
 
@@ -5192,7 +5214,7 @@ msgstr "An wie vielen Tagen pro Woche kannst du trainieren?"
 msgid "How many days a week you plan to train. Each week you reach it adds to your streak."
 msgstr "Wie viele Tage pro Woche du trainieren willst. Jede Woche, in der du das schaffst, verlängert deine Serie."
 
-#: components/PlanPickerSheet.tsx:173
+#: components/PlanPickerSheet.tsx:182
 msgid "How much lifting experience do you have?"
 msgstr "Wie viel Erfahrung hast du mit Krafttraining?"
 
@@ -5644,7 +5666,7 @@ msgstr "Eintrag erfassen"
 msgid "Log in to secure your data"
 msgstr "Melde dich an, um deine Daten zu sichern"
 
-#: components/MeasurementQuickLog.tsx:111
+#: components/MeasurementQuickLog.tsx:120
 msgid "Log Measurements"
 msgstr "Körpermaße erfassen"
 
@@ -5732,7 +5754,7 @@ msgstr "Messwerte verwalten"
 msgid "Mass"
 msgstr "Masse"
 
-#: components/PlanPickerSheet.tsx:65
+#: components/PlanPickerSheet.tsx:66
 msgid "Matches {matched}"
 msgstr "Passt zu: {matched}"
 
@@ -5770,7 +5792,7 @@ msgstr "Meter, Fuß, m, ft"
 msgid "Metric name"
 msgstr "Name des Messwerts"
 
-#: components/RecoveryCheckInSheet.tsx:31
+#: components/RecoveryCheckInSheet.tsx:32
 msgid "Mild soreness"
 msgstr "Leichter Muskelkater"
 
@@ -5973,7 +5995,7 @@ msgstr "Neue Satzarten"
 msgid "New targets"
 msgstr "Neue Ziele"
 
-#: components/PlanPickerSheet.tsx:31
+#: components/PlanPickerSheet.tsx:32
 msgid "New to lifting"
 msgstr "Neu im Krafttraining"
 
@@ -6073,7 +6095,7 @@ msgstr "Keine Daten für diesen Zeitraum."
 msgid "No data in this period"
 msgstr "Keine Daten in diesem Zeitraum"
 
-#: components/PlanPickerSheet.tsx:40
+#: components/PlanPickerSheet.tsx:41
 #: constants/premadePlanMeta.ts:135
 msgid "No equipment"
 msgstr "Keine Geräte"
@@ -6166,7 +6188,7 @@ msgstr "Kein Fortschritts-Tracking für diesen Übungstyp."
 msgid "No rep range defined. Add a rep range (e.g. 8-12) to enable auto-progression."
 msgstr "Kein Wiederholungsbereich definiert. Füge einen Bereich (z. B. 8–12) hinzu, um die automatische Progression zu aktivieren."
 
-#: app/(app)/help.tsx:434
+#: app/(app)/help.tsx:521
 msgid "No results for \"{query}\""
 msgstr "Keine Ergebnisse für „{query}“"
 
@@ -6440,7 +6462,7 @@ msgstr "Öffnet sich in deinem Browser"
 msgid "Opens setup"
 msgstr "Öffnet die Einrichtung"
 
-#: components/PlanPickerSheet.tsx:217
+#: components/PlanPickerSheet.tsx:226
 msgid "Opens the plan"
 msgstr "Öffnet den Plan"
 
@@ -6878,7 +6900,7 @@ msgstr "Letzte Trainings und der Kalender"
 msgid "Recently Used"
 msgstr "Zuletzt verwendet"
 
-#: components/MeasurementQuickLog.tsx:114
+#: components/MeasurementQuickLog.tsx:123
 msgid "Recorded for today."
 msgstr "Wird für heute erfasst."
 
@@ -6886,7 +6908,7 @@ msgstr "Wird für heute erfasst."
 msgid "Records shown"
 msgstr "Angezeigte Rekorde"
 
-#: components/RecoveryCheckInSheet.tsx:152
+#: components/RecoveryCheckInSheet.tsx:157
 #: constants/HelpData.ts:237
 msgid "Recovery Check-in"
 msgstr "Regenerations-Check-in"
@@ -7414,11 +7436,11 @@ msgstr "Suchen"
 msgid "Search exercises"
 msgstr "Übungen suchen"
 
-#: app/(app)/help.tsx:380
+#: app/(app)/help.tsx:467
 msgid "Search help"
 msgstr "Hilfe durchsuchen"
 
-#: app/(app)/help.tsx:373
+#: app/(app)/help.tsx:460
 msgid "Search help…"
 msgstr "Hilfe durchsuchen..."
 
@@ -7779,11 +7801,11 @@ msgstr "Als Diagramm anzeigen"
 msgid "Show as table"
 msgstr "Als Tabelle anzeigen"
 
-#: app/(app)/help.tsx:249
+#: app/(app)/help.tsx:326
 msgid "Show details"
 msgstr "Details anzeigen"
 
-#: app/(app)/help.tsx:274
+#: app/(app)/help.tsx:351
 msgid "Show more"
 msgstr "Mehr anzeigen"
 
@@ -7961,7 +7983,7 @@ msgstr "Alle überspringen"
 msgid "Skip feedback for {exerciseName}"
 msgstr "Feedback für {exerciseName} überspringen"
 
-#: components/RecoveryCheckInSheet.tsx:181
+#: components/RecoveryCheckInSheet.tsx:186
 msgid "Skip for now"
 msgstr "Jetzt überspringen"
 
@@ -8005,7 +8027,7 @@ msgstr "Solide Einheit. Gewicht beibehalten."
 msgid "Some discomfort noted. Keeping load steady to monitor."
 msgstr "Leichtes Unbehagen bemerkt. Last stabil halten, um es zu beobachten."
 
-#: components/PlanPickerSheet.tsx:32
+#: components/PlanPickerSheet.tsx:33
 msgid "Some experience"
 msgstr "Etwas Erfahrung"
 
@@ -8181,7 +8203,7 @@ msgstr "Treppensteiger"
 msgid "Still recovering. Hold this load for now."
 msgstr "Noch in der Erholung. Gewicht erstmal halten."
 
-#: components/RecoveryCheckInSheet.tsx:32
+#: components/RecoveryCheckInSheet.tsx:33
 msgid "Still very sore"
 msgstr "Noch sehr starker Muskelkater"
 
@@ -8538,7 +8560,7 @@ msgstr "Das Update konnte nicht heruntergeladen werden. Prüfe deine Internetver
 msgid "The update is ready but the app couldn't restart automatically. Try tapping the button below, or close and reopen the app manually."
 msgstr "Das Update ist bereit, aber die App konnte nicht automatisch neu gestartet werden. Tippe die Schaltfläche unten, oder schließe die App und öffne sie manuell erneut."
 
-#: components/PlanPickerSheet.tsx:208
+#: components/PlanPickerSheet.tsx:217
 msgid "These plans fit best"
 msgstr "Diese Pläne passen am besten"
 
@@ -8593,7 +8615,7 @@ msgstr "Dadurch wird dein MuscleQuest-Konto dauerhaft gelöscht. Dies kann nicht
 msgid "This plan couldn't be added because part of it isn't valid."
 msgstr "Dieser Plan konnte nicht hinzugefügt werden, weil ein Teil davon ungültig ist."
 
-#: components/PlanPickerSheet.tsx:206
+#: components/PlanPickerSheet.tsx:215
 msgid "This plan fits best"
 msgstr "Dieser Plan passt am besten"
 
@@ -9085,7 +9107,7 @@ msgstr "Gib {CONFIRMATION_WORD} ein, um zu bestätigen"
 msgid "Type {CONFIRMATION_WORD} to confirm. You will be asked to sign in with Google again."
 msgstr "Gib {CONFIRMATION_WORD} ein, um zu bestätigen. Du wirst gebeten, dich erneut mit Google anzumelden."
 
-#: app/(app)/help.tsx:381
+#: app/(app)/help.tsx:468
 msgid "Type to filter help topics"
 msgstr "Tippe, um Hilfethemen zu filtern"
 
@@ -9554,7 +9576,7 @@ msgstr "Willkommen zurück"
 msgid "Welcome to MuscleQuest"
 msgstr "Willkommen bei MuscleQuest"
 
-#: app/(app)/help.tsx:421
+#: app/(app)/help.tsx:508
 msgid "Welcome to MuscleQuest, your personal strength training companion. Use this guide to discover the features and get the most from your training."
 msgstr "Willkommen bei MuscleQuest, deinem persönlichen Krafttrainingsbegleiter. Nutze diesen Leitfaden, um die Funktionen zu entdecken und das Beste aus deinem Training herauszuholen."
 
@@ -9566,7 +9588,7 @@ msgstr "Willkommen bei MuscleQuest, deinem persönlichen Krafttrainingsbegleiter
 #~ msgid "Welcome{userName}"
 #~ msgstr "Willkommen{userName}"
 
-#: components/PlanPickerSheet.tsx:189
+#: components/PlanPickerSheet.tsx:198
 msgid "What can you train with?"
 msgstr "Womit kannst du trainieren?"
 
@@ -9602,7 +9624,7 @@ msgstr "Wo hast du es gespürt?"
 msgid "Where did you feel it? (optional)"
 msgstr "Wo hast du es gespürt? (optional)"
 
-#: components/PlanPickerSheet.tsx:151
+#: components/PlanPickerSheet.tsx:160
 msgid "Which plan?"
 msgstr "Welcher Plan?"
 

@@ -968,6 +968,19 @@ Each workout now has a Muscles worked row: tap it to see your planned sets per m
 You'll find them in the plan and workout editors and on a plan's overview, so you can check a premade plan before choosing it. During a quick workout, the row updates as you add exercises.
 `,
   },
+  {
+    version: 2682,
+    release: "1.6",
+    message: msg`
+🐛 Fixed: Dates, Buttons & Help!
+
+• Day and month names on home, in your history and in the calendars now follow your phone's language, and times use its 12- or 24-hour clock.
+• On phones with navigation buttons, buttons at the bottom of the screen are no longer hidden behind them.
+• Starting a workout again right after finishing it now shows last time's values.
+• Choosing a plan while getting started no longer leaves the Plans tab stuck on that plan.
+• In Help & Info, tapping a topic at the top opens it, and search matches stay highlighted after Show more.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
