@@ -263,7 +263,10 @@ export default function SessionSetInfo({
           disabled={!!isFirstSetOfFirstExercise}
           iconColor={colors.contentPrimary}
         />
-        <ThemedText style={styles.setNavigationText}>
+        <ThemedText
+          style={styles.setNavigationText}
+          testID="session-set-position"
+        >
           <Trans>
             Set {currentSetIndex + 1} of {totalSets}
           </Trans>

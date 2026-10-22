@@ -197,6 +197,7 @@ export default function DataSettingsScreen() {
         }
         onPress={promptExport}
         disabled={isExporting}
+        testID="setting-export"
       />
       <SettingRow
         id="downloadImages"

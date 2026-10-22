@@ -163,6 +163,7 @@ function SetRow({
           if (!completed) shared.onCompleteSet(ref);
         }}
         style={styles.check}
+        testID={`overview-set-check-${exerciseIndex}-${setIndex}`}
         accessible
         accessibilityRole="checkbox"
         accessibilityState={{ checked: completed, disabled: completed }}
