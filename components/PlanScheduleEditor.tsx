@@ -6,30 +6,12 @@ import { ThemedView } from "@/components/ThemedView";
 import { Workout } from "@/store/workoutStore";
 import { AppIcon } from "@/components/ui";
 import { Trans, Plural } from "@lingui/react/macro";
-import { t, msg } from "@lingui/core/macro";
+import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { weekDayOrder, type WeekStartDay } from "@/utils/week";
-
-const DAY_LABELS = [
-  msg`Mon`,
-  msg`Tue`,
-  msg`Wed`,
-  msg`Thu`,
-  msg`Fri`,
-  msg`Sat`,
-  msg`Sun`,
-];
-const DAY_FULL_NAMES = [
-  msg`Monday`,
-  msg`Tuesday`,
-  msg`Wednesday`,
-  msg`Thursday`,
-  msg`Friday`,
-  msg`Saturday`,
-  msg`Sunday`,
-];
+import { DAY_SHORT_NAMES, DAY_FULL_NAMES } from "@/constants/weekdays";
 
 interface Props {
   workouts: Workout[];
@@ -91,7 +73,7 @@ export default function PlanScheduleEditor({
 
       <View style={styles.grid}>
         {weekDayOrder(weekStartsOn).map((dow) => {
-          const label = DAY_LABELS[dow];
+          const label = DAY_SHORT_NAMES[dow];
           const workoutIdx = schedule[dow];
           const hasWorkout = workoutIdx !== undefined;
           const workoutName = hasWorkout

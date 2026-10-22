@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Modal, Portal } from "react-native-paper";
 import { Calendar, DateData } from "react-native-calendars";
+import "@/utils/calendarLocale";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";

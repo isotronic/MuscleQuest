@@ -2,6 +2,9 @@ import { useMemo } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
 import { format, isSameDay, eachDayOfInterval } from "date-fns";
 import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
+import { DAY_SHORT_NAMES } from "@/constants/weekdays";
+import { formatLongDate } from "@/utils/dateFormat";
 import { toLocalDateKey } from "@/utils/dates";
 import {
   DEFAULT_WEEK_RULE,
@@ -35,6 +38,7 @@ export default function WeekDays({
     end: endOfAppWeek(today, weekRule),
   });
   const { colors } = useAppTheme();
+  const { _ } = useLingui();
   const styles = useMemo(
     () => createStyles(colors, days.length > 7),
     [colors, days.length],
@@ -71,18 +75,14 @@ export default function WeekDays({
           </View>
         );
 
-        const dayName = day.toLocaleDateString(undefined, {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-        });
+        const dayName = formatLongDate(day);
 
         return (
           <View key={dayKey} style={styles.dayContainer}>
             <ThemedText
               style={[styles.dayName, isToday && styles.todayDayName]}
             >
-              {format(day, "EEE")}
+              {_(DAY_SHORT_NAMES[mondayIndex(day)])}
             </ThemedText>
             {isWorkoutCompleted && onDayPress ? (
               <Pressable
