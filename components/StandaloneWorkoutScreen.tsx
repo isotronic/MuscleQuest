@@ -6,6 +6,7 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { router, Stack, useLocalSearchParams } from "expo-router";
@@ -43,6 +44,7 @@ const fallbackImage = require("@/assets/images/placeholder.webp");
 
 export default function StandaloneWorkoutScreen() {
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { workoutId: workoutIdParam } = useLocalSearchParams<{
     workoutId: string;
@@ -240,7 +242,12 @@ export default function StandaloneWorkoutScreen() {
           ),
         }}
       />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 100 + insets.bottom },
+        ]}
+      >
         {workout.exercises.length === 0 ? (
           <ThemedText style={styles.emptyText}>
             <Trans>No exercises in this workout yet.</Trans>
@@ -309,7 +316,13 @@ export default function StandaloneWorkoutScreen() {
           </>
         )}
       </ScrollView>
-      <View style={styles.startButtonContainer}>
+      <View
+        style={[
+          styles.startButtonContainer,
+          // Clear the system navigation bar (three-button navigation).
+          { paddingBottom: Math.max(24, insets.bottom + 16) },
+        ]}
+      >
         <Button
           mode="contained"
           testID="standalone-start"

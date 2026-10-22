@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useExercisePreselectFilter } from "@/hooks/useExercisePreselectFilter";
 import { useExerciseSearch } from "@/hooks/useExerciseSearch";
 import { useExerciseSort } from "@/hooks/useExerciseSort";
@@ -24,6 +25,7 @@ import type { AppThemeColors } from "@/theme/types";
 
 export default function ExercisesScreen() {
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const {
     initialTargetMuscle,
@@ -303,7 +305,13 @@ export default function ExercisesScreen() {
           sectionTitles={sectionTitles}
         />
         {!replacing && !supersetMode && (
-          <View style={styles.bottomButtons}>
+          <View
+            style={[
+              styles.bottomButtons,
+              // Clear the system navigation bar (three-button navigation).
+              { paddingBottom: Math.max(28, insets.bottom + 16) },
+            ]}
+          >
             <Button
               mode="outlined"
               compact
@@ -367,7 +375,6 @@ function createStyles(colors: AppThemeColors) {
       justifyContent: "space-between",
       paddingHorizontal: 16,
       paddingVertical: 16,
-      paddingBottom: 28,
       gap: 12,
       backgroundColor: colors.surface,
       elevation: 10,

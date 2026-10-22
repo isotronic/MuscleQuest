@@ -4,6 +4,7 @@ import { useExerciseSort } from "@/hooks/useExerciseSort";
 import { useExerciseUsageQuery } from "@/hooks/useExerciseUsageQuery";
 import { useExercisePreselectFilter } from "@/hooks/useExercisePreselectFilter";
 import { View, TextInput, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ActivityIndicator, Button } from "react-native-paper";
@@ -25,6 +26,7 @@ import type { AppThemeColors } from "@/theme/types";
 
 export default function ExercisesScreen() {
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { replaceExercise, appendExercise, createSuperset } =
     useActiveWorkoutStore();
@@ -241,7 +243,13 @@ export default function ExercisesScreen() {
           sectionTitles={sectionTitles}
         />
         {isAppendMode && (
-          <View style={styles.bottomButtons}>
+          <View
+            style={[
+              styles.bottomButtons,
+              // Clear the system navigation bar (three-button navigation).
+              { paddingBottom: Math.max(28, insets.bottom + 16) },
+            ]}
+          >
             <Button
               mode="contained"
               compact
@@ -289,7 +297,6 @@ function createStyles(colors: AppThemeColors) {
     bottomButtons: {
       paddingHorizontal: 16,
       paddingVertical: 16,
-      paddingBottom: 28,
       backgroundColor: colors.surface,
       elevation: 10,
       shadowColor: "#000",

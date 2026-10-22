@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -22,6 +23,7 @@ export default function FriendExerciseScreen() {
     exerciseId: string;
   }>();
   const { colors, borders } = useAppTheme();
+  const insets = useSafeAreaInsets();
 
   const { data: exercises = [], isLoading } =
     useFriendSharedCustomExercisesQuery(friendUid);
@@ -114,7 +116,7 @@ export default function FriendExerciseScreen() {
           </View>
         )}
 
-        <View style={{ height: 80 }} />
+        <View style={{ height: 80 + insets.bottom }} />
       </ScrollView>
 
       <View
@@ -123,6 +125,8 @@ export default function FriendExerciseScreen() {
           {
             backgroundColor: colors.surface,
             borderTopColor: borders.divider,
+            // Clear the system navigation bar (three-button navigation).
+            paddingBottom: insets.bottom + 16,
           },
         ]}
       >

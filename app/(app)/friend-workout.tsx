@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { Trans } from "@lingui/react/macro";
 import { formatTimeAgo } from "@/utils/relativeTime";
@@ -21,6 +22,7 @@ export default function FriendWorkoutScreen() {
     workoutId: string;
   }>();
   const { colors, borders } = useAppTheme();
+  const insets = useSafeAreaInsets();
 
   const { data: workouts = [], isLoading } =
     useFriendSharedStandaloneWorkoutsQuery(friendUid);
@@ -92,7 +94,7 @@ export default function FriendWorkoutScreen() {
           </View>
         ))}
 
-        <View style={{ height: 80 }} />
+        <View style={{ height: 80 + insets.bottom }} />
       </ScrollView>
 
       <View
@@ -101,6 +103,8 @@ export default function FriendWorkoutScreen() {
           {
             backgroundColor: colors.surface,
             borderTopColor: borders.divider,
+            // Clear the system navigation bar (three-button navigation).
+            paddingBottom: insets.bottom + 16,
           },
         ]}
       >

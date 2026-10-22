@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { View, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -32,6 +33,7 @@ const fallbackImage = require("@/assets/images/placeholder.webp");
 
 export default function WorkoutDetailsScreen() {
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { workoutIndex, planId } = useLocalSearchParams();
   const {
@@ -279,13 +281,22 @@ export default function WorkoutDetailsScreen() {
       />
       <FlatList
         style={styles.container}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { paddingBottom: 110 + insets.bottom },
+        ]}
         data={workout?.exercises}
         renderItem={renderExerciseItem}
         keyExtractor={(item: any, index: number) => index.toString()}
         ListHeaderComponent={previewHeader}
       />
-      <View style={styles.startButtonContainer}>
+      <View
+        style={[
+          styles.startButtonContainer,
+          // Clear the system navigation bar (three-button navigation).
+          { paddingBottom: Math.max(24, insets.bottom + 16) },
+        ]}
+      >
         <Button
           mode="contained"
           onPress={handleStart}
