@@ -159,7 +159,7 @@
     "babel-plugin-transform-remove-console": "^6.9.4",
     "babel-preset-expo": "~54.0.11",
     "baseline-browser-mapping": "^2.10.27",
-    "dotenv": "^17.4.2",
+    "dotenv": "^18.0.8",
     "eslint": "^8.57.0",
     "eslint-config-expo": "~10.0.0",
     "eslint-config-prettier": "^9.1.0",
