@@ -152,7 +152,9 @@ jest.mock("expo-updates", () => ({
 jest.mock("@react-native-google-signin/google-signin", () => ({
   GoogleSignin: {
     hasPlayServices: jest.fn().mockResolvedValue(true), // Default to resolved
-    signIn: jest.fn().mockResolvedValue({ idToken: "mockIdToken" }),
+    signIn: jest
+      .fn()
+      .mockResolvedValue({ type: "success", data: { idToken: "mockIdToken" } }),
   },
   statusCodes: {
     SIGN_IN_CANCELLED: "12501",

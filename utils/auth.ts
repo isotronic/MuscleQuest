@@ -55,7 +55,15 @@ export const signInWithGoogle = async ({
     if (!hasPlayServices) {
       return { status: "error", reason: "playServicesMissing", error: null };
     }
-    const { idToken } = await GoogleSignin.signIn();
+    // Since Google Sign-In 13 a dismissed prompt resolves instead of throwing.
+    const response = await GoogleSignin.signIn();
+    if (response.type === "cancelled") {
+      return { status: "cancelled" };
+    }
+    const { idToken } = response.data;
+    if (!idToken) {
+      throw new Error("Google sign-in returned no ID token");
+    }
     const googleCredential = GoogleAuthProvider.credential(idToken);
     await signInWithCredential(getAuth(), googleCredential);
     return { status: "success" };

@@ -72,7 +72,15 @@ const reauthenticate = async (uid: string): Promise<void> => {
     throw new Error("Signed-in user does not match the account being deleted");
   }
   await GoogleSignin.hasPlayServices();
-  const { idToken } = await GoogleSignin.signIn();
+  const response = await GoogleSignin.signIn();
+  if (response.type === "cancelled") {
+    // Shaped like the error older versions threw, which deleteAccount treats
+    // as a cancel rather than a failure.
+    throw Object.assign(new Error("Google sign-in cancelled"), {
+      code: statusCodes.SIGN_IN_CANCELLED,
+    });
+  }
+  const { idToken } = response.data;
   if (!idToken) {
     throw new Error("Google sign-in returned no ID token");
   }
