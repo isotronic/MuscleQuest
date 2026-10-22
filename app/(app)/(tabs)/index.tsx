@@ -3,7 +3,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
-import { getDay, format } from "date-fns";
+import { getDay } from "date-fns";
+import { formatTime } from "@/utils/dateFormat";
 import {
   isLocalDateInRange,
   parseDbTimestamp,
@@ -348,7 +349,7 @@ export default function HomeScreen() {
                   {displayWorkoutName(workout.workout_name)}
                 </ThemedText>
                 <ThemedText style={styles.pickerItemTime}>
-                  {format(parseDbTimestamp(workout.date_completed), "h:mm a")}
+                  {formatTime(parseDbTimestamp(workout.date_completed))}
                 </ThemedText>
               </Pressable>
             ))}

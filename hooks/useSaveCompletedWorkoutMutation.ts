@@ -64,12 +64,18 @@ export const useSaveCompletedWorkoutMutation = (
       );
     },
     onSuccess: (completedWorkoutId, completedWorkoutData) => {
-      queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
-      queryClient.invalidateQueries({ queryKey: ["exerciseDetail"] });
-      queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
-      queryClient.invalidateQueries({
-        queryKey: ["globalExerciseHistoryForSession", weightUnit, distanceUnit],
-      });
+      // The session-history keys feed "last time" and prefills, so starting
+      // the same workout again right away needs them fresh.
+      for (const queryKey of [
+        ["completedWorkouts"],
+        ["exerciseDetail"],
+        ["exerciseHistory"],
+        ["trackedExercises"],
+        ["workoutSessionHistory"],
+        ["globalExerciseHistoryForSession"],
+      ]) {
+        queryClient.invalidateQueries({ queryKey });
+      }
 
       const share = (
         uid: string,

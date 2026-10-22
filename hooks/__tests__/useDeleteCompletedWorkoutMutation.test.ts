@@ -95,6 +95,21 @@ describe("useDeleteCompletedWorkoutMutation", () => {
     });
   });
 
+  it("onSuccess invalidates the session history behind last time and prefills", () => {
+    useDeleteCompletedWorkoutMutation();
+
+    capturedArgs.onSuccess(undefined, 7);
+
+    const keys = mockInvalidateQueries.mock.calls.map((c) => c[0].queryKey);
+    expect(keys).toEqual(
+      expect.arrayContaining([
+        ["workoutSessionHistory"],
+        ["globalExerciseHistoryForSession"],
+        ["exerciseHistory"],
+      ]),
+    );
+  });
+
   it("onSuccess navigates back", () => {
     const { router } = require("expo-router");
     useDeleteCompletedWorkoutMutation();

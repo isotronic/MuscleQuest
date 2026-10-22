@@ -3,6 +3,7 @@ import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { isAtLeast } from "@/utils/units";
+import { DEVICE_LOCALE } from "@/utils/numberFormat";
 import { bodyWeightAtSql } from "@/utils/db/bodyWeightAtSql";
 
 export interface HistorySet {
@@ -183,7 +184,7 @@ const fetchExerciseHistoryBody = async (
 
   const sections: HistorySection[] = Array.from(sectionMap.entries()).map(
     ([_, { date, workout_name, workout_id, sets }]) => ({
-      date: new Date(date + "T00:00:00").toLocaleDateString("en-US", {
+      date: new Date(date + "T00:00:00").toLocaleDateString(DEVICE_LOCALE, {
         month: "short",
         day: "numeric",
         year: "numeric",

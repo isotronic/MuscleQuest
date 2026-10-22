@@ -13,6 +13,7 @@ import { AppIconButton } from "@/components/ui/AppIconButton";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { StarterPlanList } from "./StarterPlanList";
+import { openPlanOverview } from "@/utils/planNavigation";
 
 /**
  * The pick-a-plan card is for someone who has never trained with the app:
@@ -132,14 +133,7 @@ const Onboarding = ({
             <ThemedText type="subtitle" style={styles.title}>
               <Trans>Pick a plan to get started</Trans>
             </ThemedText>
-            <StarterPlanList
-              onSelect={(planId) =>
-                router.push({
-                  pathname: "/(app)/(tabs)/(plans)/overview",
-                  params: { planId: String(planId) },
-                })
-              }
-            />
+            <StarterPlanList onSelect={(planId) => openPlanOverview(planId)} />
             {onQuickWorkout && (
               <Button
                 mode="text"

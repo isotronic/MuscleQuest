@@ -13,6 +13,7 @@ import { useLingui } from "@lingui/react";
 import { ActivityIndicator, Button, Divider } from "react-native-paper";
 import { AppIcon, DecimalInput } from "@/components/ui";
 import { Calendar } from "react-native-calendars";
+import "@/utils/calendarLocale";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { format } from "date-fns";
 import { ThemedView } from "@/components/ThemedView";

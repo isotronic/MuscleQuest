@@ -5,21 +5,12 @@ import { PlanScheduleEntry } from "@/utils/database";
 
 import { AppIcon } from "@/components/ui";
 import { Trans, Plural } from "@lingui/react/macro";
-import { t, msg } from "@lingui/core/macro";
+import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { weekDayOrder, type WeekStartDay } from "@/utils/week";
-
-const DAY_LABELS = [
-  msg`Mon`,
-  msg`Tue`,
-  msg`Wed`,
-  msg`Thu`,
-  msg`Fri`,
-  msg`Sat`,
-  msg`Sun`,
-];
+import { DAY_SHORT_NAMES } from "@/constants/weekdays";
 
 interface WorkoutRef {
   id?: number | null;
@@ -88,7 +79,7 @@ export default function WeeklyScheduleDisplay({
       </View>
       <View style={styles.grid}>
         {weekDayOrder(weekStartsOn).map((dow) => {
-          const label = DAY_LABELS[dow];
+          const label = DAY_SHORT_NAMES[dow];
           const hasWorkout = scheduleMap[dow] !== undefined;
           const workoutName = scheduleMap[dow] || t`Workout`;
           return (

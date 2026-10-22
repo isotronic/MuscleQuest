@@ -175,6 +175,42 @@ describe("HelpScreen", () => {
     expect(getByText(mockLongAlphaBody)).toBeTruthy();
   });
 
+  it("keeps the query highlighted in the full body after Show more", () => {
+    const { getByPlaceholderText, getByText, getAllByText } = render(
+      <HelpScreen />,
+    );
+    fireEvent.changeText(getByPlaceholderText("Search help…"), "gizmo");
+    fireEvent.press(getByText("Show more"));
+    const highlighted = getAllByText("gizmo").map(
+      (node) => node.props.style?.color,
+    );
+    // The expanded prose body and the beta step snippet.
+    expect(highlighted).toEqual(["#f00", "#f00"]);
+  });
+
+  it("keeps the query highlighted in every step after expanding steps", () => {
+    const { getByPlaceholderText, getByText, getAllByText } = render(
+      <HelpScreen />,
+    );
+    fireEvent.changeText(getByPlaceholderText("Search help…"), "beta step");
+    fireEvent.press(getByText(/more steps|Show details/));
+    expect(getByText("Second beta step with gizmo in it.")).toBeTruthy();
+    expect(getAllByText("beta step").length).toBeGreaterThan(0);
+    for (const node of getAllByText("beta step")) {
+      expect(node.props.style?.color).toBe("#f00");
+    }
+  });
+
+  it("opens a collapsed group when its chip is pressed", () => {
+    const { getByTestId, getByText, queryByText } = render(<HelpScreen />);
+    expect(queryByText("Gamma Topic")).toBeNull();
+    fireEvent.press(getByTestId("help-chip-group-b"));
+    expect(getByText("Gamma Topic")).toBeTruthy();
+    // Pressing it again keeps it open.
+    fireEvent.press(getByTestId("help-chip-group-b"));
+    expect(getByText("Gamma Topic")).toBeTruthy();
+  });
+
   it("renders one chip per group while browsing and scrolls on press", () => {
     const { getByTestId } = render(<HelpScreen />);
     const groupAWrapper = getByTestId("help-group-group-a");

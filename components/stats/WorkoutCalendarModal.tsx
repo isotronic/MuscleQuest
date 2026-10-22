@@ -15,6 +15,8 @@ import {
 import { Modal, Portal, Divider } from "react-native-paper";
 import { AppIconButton } from "@/components/ui";
 import { CalendarList, DateData } from "react-native-calendars";
+import "@/utils/calendarLocale";
+import { formatLongDate } from "@/utils/dateFormat";
 import { addMonths, format, parseISO, subMonths } from "date-fns";
 import { ThemedText } from "@/components/ThemedText";
 import WorkoutHistoryCard from "@/components/WorkoutHistoryCard";
@@ -75,7 +77,7 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
   );
 
   const formattedHeading = selectedDate
-    ? format(parseISO(selectedDate), "EEEE, d MMMM")
+    ? formatLongDate(parseISO(selectedDate))
     : null;
 
   const [calendarReady, setCalendarReady] = useState(false);

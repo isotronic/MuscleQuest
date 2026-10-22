@@ -1,10 +1,16 @@
 import React, { useCallback, useMemo, useRef } from "react";
-import { View, StyleSheet, TextInput as RNTextInput } from "react-native";
+import {
+  View,
+  StyleSheet,
+  TextInput as RNTextInput,
+  useWindowDimensions,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   BottomSheetModal,
   BottomSheetBackdrop,
   BottomSheetTextInput,
-  BottomSheetView,
+  BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import { Trans } from "@lingui/react/macro";
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
@@ -28,12 +34,18 @@ const SheetInput = BottomSheetTextInput as unknown as React.ComponentType<
   React.ComponentPropsWithoutRef<typeof RNTextInput>
 >;
 
+// The sheet's drag handle plus a little air above it.
+const SHEET_HANDLE_ROOM = 48;
+
 /**
  * Home-screen entry point for body measurements: a glanceable card that opens
  * a sheet for logging today's numbers without leaving the screen.
  */
 export function MeasurementQuickLog() {
   const { colors } = useAppTheme();
+
+  const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
   const sheetRef = useRef<BottomSheetModal>(null);
 
   const { data: settings } = useSettingsQuery();
@@ -101,12 +113,22 @@ export function MeasurementQuickLog() {
       />
       <AppBottomSheet
         ref={sheetRef}
-        snapPoints={["55%", "90%"]}
+        // Below the status bar with room for the handle; a long metric list
+        // scrolls inside the sheet instead.
+        maxDynamicContentSize={windowHeight - insets.top - SHEET_HANDLE_ROOM}
         enablePanDownToClose
         backdropComponent={renderBackdrop}
         handleIndicatorStyle={{ backgroundColor: colors.contentSecondary }}
       >
-        <BottomSheetView style={styles.sheetContent}>
+        {/* Sized to its content, so Log Entry sits above the system
+            navigation bar; scrolls when many metrics are shown. */}
+        <BottomSheetScrollView
+          contentContainerStyle={[
+            styles.sheetContent,
+            { paddingBottom: 32 + insets.bottom },
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
           <ThemedText type="subtitle" style={styles.sheetTitle}>
             <Trans>Log Measurements</Trans>
           </ThemedText>
@@ -125,7 +147,7 @@ export function MeasurementQuickLog() {
               inputComponent={SheetInput}
             />
           </View>
-        </BottomSheetView>
+        </BottomSheetScrollView>
       </AppBottomSheet>
     </>
   );

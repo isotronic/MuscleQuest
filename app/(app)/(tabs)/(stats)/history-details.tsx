@@ -19,7 +19,7 @@ import {
 } from "expo-router";
 import { formatToHoursMinutes } from "@/utils/utility";
 import { exerciseThumbnailUri } from "@/utils/exerciseThumbnail";
-import { format } from "date-fns";
+import { formatDateTime } from "@/utils/dateFormat";
 import { parseDbTimestamp } from "@/utils/dates";
 import { AppButton, AppIcon, AppImage, AppIconButton } from "@/components/ui";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -232,7 +232,7 @@ export default function HistoryDetailsScreen() {
   };
 
   const parsedDate = parseDbTimestamp(workout.date_completed);
-  const formattedDate = format(parsedDate, "dd/MM/yyyy 'at' HH:mm");
+  const formattedDate = formatDateTime(parsedDate);
   const sessionNote = workout.notes?.trim();
 
   return (

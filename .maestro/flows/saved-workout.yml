@@ -86,15 +86,10 @@ appId: com.isotronic.musclequest
     element: "E2E session note"
     timeout: 30000
 - runFlow: close-summary.yml
-# Relaunch before training it again: saving does not refresh the cached
-# per-workout history yet, so within five minutes the next session would
-# show none. Remove the relaunch once that is fixed.
-- stopApp
-- launchApp
 - extendedWaitUntil:
     visible:
       id: "home-choose-workout"
-    timeout: 60000
+    timeout: 15000
 # Again, from the picker on home.
 - tapOn:
     id: "home-choose-workout"

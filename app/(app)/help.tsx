@@ -178,6 +178,69 @@ function BrowseBody({ body }: { body: TranslatedBody }) {
   );
 }
 
+/** The whole body, with the search match still highlighted. */
+function HighlightedBody({
+  body,
+  match,
+  highlightColor,
+}: {
+  body: TranslatedBody;
+  match: SectionMatch;
+  highlightColor: string;
+}) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  if (!isTranslatedStepsBody(body)) {
+    return (
+      <Text style={styles.bodyText}>
+        {renderSegments(toSegments(body, match.bodyRanges), highlightColor)}
+      </Text>
+    );
+  }
+  const { stepRanges } = flattenBody(body);
+  return (
+    <View>
+      <HighlightedLead
+        lead={body.lead}
+        match={match}
+        highlightColor={highlightColor}
+      />
+      <StepsList
+        ordered={body.ordered}
+        steps={body.steps.map((step, i) =>
+          renderSegments(
+            toSegments(
+              step,
+              stepLocalHighlightRanges(stepRanges![i], match.bodyRanges),
+            ),
+            highlightColor,
+          ),
+        )}
+      />
+    </View>
+  );
+}
+
+function HighlightedLead({
+  lead,
+  match,
+  highlightColor,
+}: {
+  lead: string;
+  match: SectionMatch;
+  highlightColor: string;
+}) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  // The lead starts the flattened body, so its ranges need no remapping.
+  const ranges = stepLocalHighlightRanges([0, lead.length], match.bodyRanges);
+  return (
+    <Text style={styles.bodyText}>
+      {renderSegments(toSegments(lead, ranges), highlightColor)}
+    </Text>
+  );
+}
+
 function SearchBody({
   body,
   match,
@@ -195,7 +258,13 @@ function SearchBody({
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   if (expanded) {
-    return <BrowseBody body={body} />;
+    return (
+      <HighlightedBody
+        body={body}
+        match={match}
+        highlightColor={highlightColor}
+      />
+    );
   }
 
   if (isTranslatedStepsBody(body)) {
@@ -205,7 +274,11 @@ function SearchBody({
     if (matchedIdx.length === 0 || !stepRanges) {
       return (
         <View>
-          <Text style={styles.bodyText}>{body.lead}</Text>
+          <HighlightedLead
+            lead={body.lead}
+            match={match}
+            highlightColor={highlightColor}
+          />
           <TouchableOpacity
             accessibilityRole="button"
             onPress={onToggleExpand}
@@ -224,7 +297,11 @@ function SearchBody({
     const remaining = body.steps.length - shown.length;
     return (
       <View>
-        <Text style={styles.bodyText}>{body.lead}</Text>
+        <HighlightedLead
+          lead={body.lead}
+          match={match}
+          highlightColor={highlightColor}
+        />
         <StepsList
           ordered={body.ordered}
           steps={shown.map((i) => {
@@ -288,7 +365,10 @@ export default function HelpScreen() {
   const [openGroups, setOpenGroups] = useState<Set<string>>(
     () => new Set(linkedGroup ? [linkedGroup] : []),
   );
-  const pendingScrollRef = useRef(linkedGroup ?? null);
+  // A group to scroll to once its layout (opened) is known.
+  const pendingScrollRef = useRef<{ id: string; animated: boolean } | null>(
+    linkedGroup ? { id: linkedGroup, animated: false } : null,
+  );
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(),
   );
@@ -353,9 +433,16 @@ export default function HelpScreen() {
       }));
   }, [isSearching, translatedHelpData, matchedGroupIds, matches]);
 
-  const scrollToGroup = (id: string) => {
-    const y = groupOffsets.current[id];
-    if (y != null) scrollRef.current?.scrollTo({ y, animated: true });
+  // A chip opens its group and scrolls to it. An opened group's layout
+  // changes, so its onLayout scrolls once the sections are in.
+  const openGroupFromChip = (id: string) => {
+    if (openGroups.has(id)) {
+      const y = groupOffsets.current[id];
+      if (y != null) scrollRef.current?.scrollTo({ y, animated: true });
+      return;
+    }
+    pendingScrollRef.current = { id, animated: true };
+    setOpenGroups((prev) => new Set(prev).add(id));
   };
 
   return (
@@ -405,7 +492,7 @@ export default function HelpScreen() {
             id: g.id,
             label: g.group,
           }))}
-          onPress={scrollToGroup}
+          onPress={openGroupFromChip}
         />
       )}
 
@@ -462,11 +549,12 @@ export default function HelpScreen() {
                 testID={`help-group-${group.id}`}
                 onLayout={(e: { nativeEvent: { layout: { y: number } } }) => {
                   groupOffsets.current[group.id] = e.nativeEvent.layout.y;
-                  if (pendingScrollRef.current === group.id) {
+                  const pending = pendingScrollRef.current;
+                  if (pending?.id === group.id) {
                     pendingScrollRef.current = null;
                     scrollRef.current?.scrollTo({
                       y: e.nativeEvent.layout.y,
-                      animated: false,
+                      animated: pending.animated,
                     });
                   }
                 }}

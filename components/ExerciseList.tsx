@@ -136,6 +136,9 @@ const ExerciseList = ({
   return (
     <FlashList
       key={scrollKey}
+      // FlashList keeps the visible rows in place by default, so a refetch that
+      // adds a Favorites section would land above the top and stay out of view.
+      maintainVisibleContentPosition={{ disabled: true }}
       data={listData}
       keyExtractor={(item, index) =>
         item.type === "title"

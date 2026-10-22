@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
@@ -74,6 +75,8 @@ const PlanPickerSheet = React.forwardRef<
   PlanPickerSheetProps
 >(function PlanPickerSheet({ plans, onSelectPlan }, ref) {
   const { colors } = useAppTheme();
+
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const [step, setStep] = useState<Step>("days");
@@ -146,7 +149,13 @@ const PlanPickerSheet = React.forwardRef<
       backdropComponent={renderBackdrop}
       onDismiss={reset}
     >
-      <BottomSheetScrollView contentContainerStyle={styles.container}>
+      <BottomSheetScrollView
+        contentContainerStyle={[
+          styles.container,
+          // Clear the system navigation bar (three-button navigation).
+          { paddingBottom: 24 + insets.bottom },
+        ]}
+      >
         <ThemedText accessibilityRole="header" style={styles.title}>
           <Trans>Which plan?</Trans>
         </ThemedText>

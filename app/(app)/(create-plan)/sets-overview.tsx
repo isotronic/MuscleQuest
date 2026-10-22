@@ -6,6 +6,7 @@ import {
   View,
   Switch,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { Button, Divider } from "react-native-paper";
@@ -26,6 +27,7 @@ import { instanceName } from "@/utils/exerciseInstance";
 
 export default function SetsOverviewScreen() {
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const {
     exerciseIndex: exerciseIndexParam,
@@ -263,7 +265,13 @@ export default function SetsOverviewScreen() {
           />
         </View>
       )}
-      <View style={styles.buttonRow}>
+      <View
+        style={[
+          styles.buttonRow,
+          // Clear the system navigation bar (three-button navigation).
+          { paddingBottom: Math.max(16, insets.bottom) },
+        ]}
+      >
         <Button
           mode="outlined"
           labelStyle={styles.buttonLabel}

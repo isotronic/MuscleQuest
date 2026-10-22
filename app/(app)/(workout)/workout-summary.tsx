@@ -652,6 +652,7 @@ export default function WorkoutSummaryScreen() {
         {progressionSettings.enabled && workoutId > 0 && (
           <ProgressionSummaryCard
             workoutId={workoutId}
+            planId={workout?.plan_id}
             weightUnit={weightUnit}
             isCurrentWeekDeload={isCurrentWeekDeload}
           />

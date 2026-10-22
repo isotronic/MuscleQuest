@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   BottomSheetModal,
   BottomSheetView,
@@ -91,6 +92,8 @@ const RecoveryCheckInSheet = React.forwardRef<
 >(function RecoveryCheckInSheet({ pendingCheckIns, onSubmit }, ref) {
   const { colors } = useAppTheme();
 
+  const insets = useSafeAreaInsets();
+
   const muscleGroups = Array.from(
     new Map(pendingCheckIns.map((c) => [c.targetMuscle, c])).values(),
   );
@@ -145,6 +148,8 @@ const RecoveryCheckInSheet = React.forwardRef<
       <BottomSheetView>
         <ScrollView
           style={styles.container}
+          // Clear the system navigation bar (three-button navigation).
+          contentContainerStyle={{ paddingBottom: insets.bottom }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >

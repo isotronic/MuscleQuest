@@ -25,17 +25,26 @@ npm run test:e2e-existing:full -- <build-id>
 
 Locally (free): an emulator from the `system-images;android-34;default;x86_64`
 image with gesture navigation, the Maestro CLI in `~/.maestro`, and an APK
-from an `e2e-test` build (`eas build --profile e2e-test --platform android`).
+from `npm run build:local-e2e` (a few minutes once cached) or an `e2e-test`
+build on EAS (`eas build --profile e2e-test --platform android`). A local APK
+is signed with the debug key, so uninstall an EAS-built app first.
+
+OTA updates on the `e2e` channel are no use for testing: on the EAS e2e build,
+any update bundle (even the embedded one) failed at launch with "Cannot read
+property 'ErrorBoundary' of undefined" and was rolled back. Rebuild instead.
 
 ```
-adb install -r e2e.apk
+adb install -r android/app/build/outputs/apk/release/app-release.apk
 adb shell settings put secure immersive_mode_confirmations confirmed
 ~/.maestro/bin/maestro test .maestro/full.yml
 ```
 
 For `german.yml`, switch the emulator first: `adb root`, wait until
 `adb shell whoami` prints `root`, then
-`adb shell "setprop persist.sys.locale de-DE; setprop ctl.restart zygote"`.
+`adb shell "setprop persist.sys.locale de-DE; setprop ctl.restart zygote"`. Switch back the
+same way with `en-US`, then `adb reboot` before running other flows: after a
+zygote restart Maestro stopped seeing React Native `Modal` windows (the
+weekly-goal settings modal) until a full reboot.
 
 ## Later
 
@@ -43,7 +52,8 @@ For `german.yml`, switch the emulator first: `adb root`, wait until
   root) after starting a workout, relaunch, and check the resume, finish or
   discard prompt (`stale-resume`, `stale-finish`, `stale-discard`). Changing
   the device clock can upset other flows, so run it last and on its own.
-- **Three-button navigation.** Run the suite once with
-  `adb shell cmd overlay enable com.android.internal.systemui.navbar.threebutton`.
-  It fails on the exercise pickers until their bottom buttons use the safe-area
-  inset instead of a fixed `paddingBottom: 28`.
+- **Three-button navigation.** Run the suite once after
+  `adb shell cmd overlay enable-exclusive --category com.android.internal.systemui.navbar.threebutton`
+  and relaunch the app (back with `...navbar.gestural`). A plain
+  `overlay enable` leaves the gestural overlay on too: the buttons are drawn
+  but apps get the small gesture inset, so everything looks covered.

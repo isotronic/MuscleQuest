@@ -10,8 +10,10 @@ npm-debug.*
 *.orig.*
 *.apk
 web-build/
-android
-ios
+# Generated native projects (root only; modules/*/android is source)
+/android
+/ios
+modules/*/android/build/
 .env
 assets/db/
 assets/data/

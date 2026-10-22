@@ -20,9 +20,18 @@ export const useDeleteCompletedWorkoutMutation = () => {
   const queryClient = useQueryClient();
 
   const invalidateHistory = () => {
-    queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
-    queryClient.invalidateQueries({ queryKey: ["exerciseDetail"] });
-    queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
+    // The session-history keys feed "last time" and prefills, which must not
+    // keep offering a deleted session (or miss a restored one).
+    for (const queryKey of [
+      ["completedWorkouts"],
+      ["exerciseDetail"],
+      ["exerciseHistory"],
+      ["trackedExercises"],
+      ["workoutSessionHistory"],
+      ["globalExerciseHistoryForSession"],
+    ]) {
+      queryClient.invalidateQueries({ queryKey });
+    }
   };
 
   const undoDelete = async (id: number) => {
