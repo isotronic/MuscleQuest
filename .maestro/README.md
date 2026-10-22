@@ -41,7 +41,10 @@ adb shell settings put secure immersive_mode_confirmations confirmed
 
 For `german.yml`, switch the emulator first: `adb root`, wait until
 `adb shell whoami` prints `root`, then
-`adb shell "setprop persist.sys.locale de-DE; setprop ctl.restart zygote"`.
+`adb shell "setprop persist.sys.locale de-DE; setprop ctl.restart zygote"`. Switch back the
+same way with `en-US`, then `adb reboot` before running other flows: after a
+zygote restart Maestro stopped seeing React Native `Modal` windows (the
+weekly-goal settings modal) until a full reboot.
 
 ## Later
 
