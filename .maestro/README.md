@@ -25,10 +25,16 @@ npm run test:e2e-existing:full -- <build-id>
 
 Locally (free): an emulator from the `system-images;android-34;default;x86_64`
 image with gesture navigation, the Maestro CLI in `~/.maestro`, and an APK
-from an `e2e-test` build (`eas build --profile e2e-test --platform android`).
+from `npm run build:local-e2e` (a few minutes once cached) or an `e2e-test`
+build on EAS (`eas build --profile e2e-test --platform android`). A local APK
+is signed with the debug key, so uninstall an EAS-built app first.
+
+OTA updates on the `e2e` channel are no use for testing: on the EAS e2e build,
+any update bundle (even the embedded one) failed at launch with "Cannot read
+property 'ErrorBoundary' of undefined" and was rolled back. Rebuild instead.
 
 ```
-adb install -r e2e.apk
+adb install -r android/app/build/outputs/apk/release/app-release.apk
 adb shell settings put secure immersive_mode_confirmations confirmed
 ~/.maestro/bin/maestro test .maestro/full.yml
 ```
