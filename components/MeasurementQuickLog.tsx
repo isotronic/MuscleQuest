@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef } from "react";
 import { View, StyleSheet, TextInput as RNTextInput } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   BottomSheetModal,
   BottomSheetBackdrop,
@@ -34,6 +35,8 @@ const SheetInput = BottomSheetTextInput as unknown as React.ComponentType<
  */
 export function MeasurementQuickLog() {
   const { colors } = useAppTheme();
+
+  const insets = useSafeAreaInsets();
   const sheetRef = useRef<BottomSheetModal>(null);
 
   const { data: settings } = useSettingsQuery();
@@ -106,7 +109,13 @@ export function MeasurementQuickLog() {
         backdropComponent={renderBackdrop}
         handleIndicatorStyle={{ backgroundColor: colors.contentSecondary }}
       >
-        <BottomSheetView style={styles.sheetContent}>
+        <BottomSheetView
+          style={[
+            styles.sheetContent,
+            // Clear the system navigation bar (three-button navigation).
+            { paddingBottom: 32 + insets.bottom },
+          ]}
+        >
           <ThemedText type="subtitle" style={styles.sheetTitle}>
             <Trans>Log Measurements</Trans>
           </ThemedText>

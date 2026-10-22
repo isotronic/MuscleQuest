@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 import { View, TouchableOpacity, TextInput as RNTextInput } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   BottomSheetBackdrop,
   BottomSheetTextInput,
@@ -39,6 +40,8 @@ interface NoteSheetProps {
 export const NoteSheet = forwardRef<NoteSheetHandle, NoteSheetProps>(
   function NoteSheet({ title, placeholder, onSave }, ref) {
     const { colors } = useAppTheme();
+
+    const insets = useSafeAreaInsets();
     const bottomSheetRef = useRef<any>(null);
     const inputRef = useRef<any>(null);
     // Refs track the live text without triggering re-renders on each keystroke
@@ -73,7 +76,8 @@ export const NoteSheet = forwardRef<NoteSheetHandle, NoteSheetProps>(
           <BottomSheetBackdrop {...props} disappearsOnIndex={-1} />
         )}
       >
-        <BottomSheetView>
+        {/* Clear the system navigation bar (three-button navigation). */}
+        <BottomSheetView style={{ paddingBottom: insets.bottom }}>
           <View
             style={{ flexDirection: "row", paddingHorizontal: 16, gap: 12 }}
           >

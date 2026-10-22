@@ -43,7 +43,8 @@ For `german.yml`, switch the emulator first: `adb root`, wait until
   root) after starting a workout, relaunch, and check the resume, finish or
   discard prompt (`stale-resume`, `stale-finish`, `stale-discard`). Changing
   the device clock can upset other flows, so run it last and on its own.
-- **Three-button navigation.** Run the suite once with
-  `adb shell cmd overlay enable com.android.internal.systemui.navbar.threebutton`.
-  It fails on the exercise pickers until their bottom buttons use the safe-area
-  inset instead of a fixed `paddingBottom: 28`.
+- **Three-button navigation.** Run the suite once after
+  `adb shell cmd overlay enable-exclusive --category com.android.internal.systemui.navbar.threebutton`
+  and relaunch the app (back with `...navbar.gestural`). A plain
+  `overlay enable` leaves the gestural overlay on too: the buttons are drawn
+  but apps get the small gesture inset, so everything looks covered.
