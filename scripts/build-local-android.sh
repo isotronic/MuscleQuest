@@ -17,6 +17,8 @@ cd "$(dirname "$0")/.."
 
 case "$variant" in
   e2e)
+    # An APP_VARIANT left in the shell would build the development app id.
+    unset APP_VARIANT
     export EXPO_PUBLIC_BUGSNAG_API_KEY=00000000000000000000000000000000
     export NODE_ENV=production
     task=assembleRelease

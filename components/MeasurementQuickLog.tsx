@@ -1,5 +1,10 @@
 import React, { useCallback, useMemo, useRef } from "react";
-import { View, StyleSheet, TextInput as RNTextInput } from "react-native";
+import {
+  View,
+  StyleSheet,
+  TextInput as RNTextInput,
+  useWindowDimensions,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   BottomSheetModal,
@@ -29,6 +34,9 @@ const SheetInput = BottomSheetTextInput as unknown as React.ComponentType<
   React.ComponentPropsWithoutRef<typeof RNTextInput>
 >;
 
+// The sheet's drag handle plus a little air above it.
+const SHEET_HANDLE_ROOM = 48;
+
 /**
  * Home-screen entry point for body measurements: a glanceable card that opens
  * a sheet for logging today's numbers without leaving the screen.
@@ -37,6 +45,7 @@ export function MeasurementQuickLog() {
   const { colors } = useAppTheme();
 
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
   const sheetRef = useRef<BottomSheetModal>(null);
 
   const { data: settings } = useSettingsQuery();
@@ -104,6 +113,9 @@ export function MeasurementQuickLog() {
       />
       <AppBottomSheet
         ref={sheetRef}
+        // Below the status bar with room for the handle; a long metric list
+        // scrolls inside the sheet instead.
+        maxDynamicContentSize={windowHeight - insets.top - SHEET_HANDLE_ROOM}
         enablePanDownToClose
         backdropComponent={renderBackdrop}
         handleIndicatorStyle={{ backgroundColor: colors.contentSecondary }}
