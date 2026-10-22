@@ -12,12 +12,7 @@ import { showSnackbar } from "@/store/snackbarStore";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 type SettingType =
-  | "number"
-  | "radio"
-  | "dropdown"
-  | "restTime"
-  | "reminderTime"
-  | "slider";
+  "number" | "radio" | "dropdown" | "restTime" | "reminderTime" | "slider";
 
 type InputValue =
   | string

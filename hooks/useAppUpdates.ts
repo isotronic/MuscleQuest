@@ -3,12 +3,7 @@ import * as Updates from "expo-updates";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 export type UpdateStatus =
-  | "idle"
-  | "checking"
-  | "downloading"
-  | "ready"
-  | "error"
-  | "no-update";
+  "idle" | "checking" | "downloading" | "ready" | "error" | "no-update";
 
 export type UpdateErrorType = "download-failed" | "reload-failed";
 

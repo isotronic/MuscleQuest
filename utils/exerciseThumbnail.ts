@@ -1,11 +1,7 @@
 import { bytesToBase64 } from "@/utils/utility";
 
 type ThumbnailBytes =
-  | Uint8Array
-  | ArrayLike<number>
-  | Record<number, number>
-  | null
-  | undefined;
+  Uint8Array | ArrayLike<number> | Record<number, number> | null | undefined;
 
 const byteLength = (image: NonNullable<ThumbnailBytes>) =>
   "length" in image ? image.length : Object.keys(image).length;

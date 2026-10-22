@@ -4,13 +4,7 @@ import type { TextProps } from "react-native/Libraries/Text/Text";
 import { useAppTheme } from "@/theme";
 
 export type AppTextVariant =
-  | "body"
-  | "bodyBold"
-  | "caption"
-  | "label"
-  | "title"
-  | "subtitle"
-  | "link";
+  "body" | "bodyBold" | "caption" | "label" | "title" | "subtitle" | "link";
 
 export type AppTextProps = TextProps & {
   variant?: AppTextVariant;

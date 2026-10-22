@@ -27,8 +27,7 @@ export function heaviestWorkingWeight(
 }
 
 export type WeightPlausibility =
-  | { implausible: false }
-  | { implausible: true; suggestion: number | null };
+  { implausible: false } | { implausible: true; suggestion: number | null };
 
 /**
  * Flags a weight that is far above what this exercise has seen, which is what

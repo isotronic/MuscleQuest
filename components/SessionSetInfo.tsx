@@ -72,8 +72,7 @@ interface SessionSetInfoProps {
   onOpenPlateCalculator?: () => void;
   workingSetOrdinal?: number;
   progressionSuggestion?:
-    | import("@/types/progression").ExerciseProgressionState
-    | null;
+    import("@/types/progression").ExerciseProgressionState | null;
   /** This set last time, in display units. Hidden when there is none. */
   previousSet?: PreviousSet | null;
   /** The weight a progression suggestion prefilled for this set. */
