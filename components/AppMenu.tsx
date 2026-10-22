@@ -39,13 +39,22 @@ type MenuItemProps = {
   onPress: () => void;
   hint?: string;
   badge?: number;
+  testID?: string;
 };
 
-function MenuItem({ icon, label, onPress, hint, badge }: MenuItemProps) {
+function MenuItem({
+  icon,
+  label,
+  onPress,
+  hint,
+  badge,
+  testID,
+}: MenuItemProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createMenuItemStyles(colors), [colors]);
   return (
     <TouchableOpacity
+      testID={testID}
       onPress={onPress}
       style={styles.menuItem}
       accessibilityRole="button"
@@ -201,21 +210,25 @@ export function AppMenu() {
           icon="barbell-outline"
           label={t`Exercise Library`}
           onPress={() => navigate("/(app)/exercise-library")}
+          testID="menu-exercise-library"
         />
         <MenuItem
           icon="settings-outline"
           label={t`Settings`}
           onPress={() => navigate("/(app)/settings")}
+          testID="menu-settings"
         />
         <MenuItem
           icon="help-circle-outline"
           label={t`Help & Info`}
           onPress={() => navigate("/(app)/help")}
+          testID="menu-help"
         />
         <MenuItem
           icon="newspaper-outline"
           label={t`Changelog`}
           onPress={() => navigate("/(app)/changelog")}
+          testID="menu-changelog"
         />
 
         <MenuDivider />

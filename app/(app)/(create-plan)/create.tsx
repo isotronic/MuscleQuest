@@ -359,6 +359,7 @@ export default function CreatePlanScreen() {
               icon={SaveIcon}
               style={{ marginRight: 0 }}
               disabled={saveDisabled || isSaving}
+              testID="plan-save"
               onPressIn={handleSaveAndNavigate}
             >
               <Trans>Save</Trans>
@@ -394,6 +395,7 @@ export default function CreatePlanScreen() {
               </View>
               <TextInput
                 accessibilityLabel={t`Training Plan Name`}
+                testID="plan-name-input"
                 style={styles.input}
                 placeholderTextColor={colors.contentSecondary}
                 placeholder={t`Training Plan Name`}
@@ -424,6 +426,7 @@ export default function CreatePlanScreen() {
             <Button
               mode="outlined"
               icon="plus"
+              testID="plan-add-workout"
               onPress={handleAddWorkout}
               style={styles.addWorkoutButton}
               labelStyle={styles.buttonLabel}

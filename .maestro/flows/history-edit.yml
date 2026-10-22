@@ -1,0 +1,45 @@
+# From home: change a set's weight in the newest history entry, then delete
+# the entry.
+appId: com.isotronic.musclequest
+---
+- tapOn:
+    id: "tab-stats"
+- scrollUntilVisible:
+    element:
+      id: "history-workout"
+    timeout: 15000
+- tapOn:
+    id: "history-workout"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "history-edit"
+    timeout: 15000
+- tapOn:
+    id: "history-edit"
+- scrollUntilVisible:
+    element:
+      id: "history-weight-input"
+    timeout: 15000
+- tapOn:
+    id: "history-weight-input"
+    point: "90%, 50%"
+    index: 0
+- eraseText
+- inputText: "77"
+- hideKeyboard
+- tapOn:
+    id: "history-save"
+- scrollUntilVisible:
+    element: ".*(^|\\D)77(\\D|$).*"
+    timeout: 15000
+- tapOn:
+    id: "history-delete"
+# The delete needs no confirmation; it offers Undo instead.
+- extendedWaitUntil:
+    notVisible:
+      id: "history-delete"
+    timeout: 15000
+- runFlow: wait-for-snackbar.yml
+- tapOn:
+    id: "tab-home"

@@ -1,0 +1,26 @@
+# From home: set the weekly goal to 1 day and see it on home.
+appId: com.isotronic.musclequest
+---
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "menu-settings"
+- tapOn:
+    id: "settings-profile"
+- tapOn:
+    id: "setting-weekly-goal"
+# A tap near the left end of the slider sets the minimum, 1 day.
+- tapOn:
+    id: "settings-modal-slider"
+    point: "3%, 50%"
+- tapOn:
+    id: "settings-modal-save"
+- back
+- back
+- tapOn:
+    id: "tab-home"
+- scrollUntilVisible:
+    element:
+      id: "home-week-progress"
+      text: ".* of 1 this week"
+    timeout: 15000

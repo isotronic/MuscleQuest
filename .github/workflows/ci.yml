@@ -47,13 +47,70 @@ jobs:
       - name: Lint
         run: npm run lint:ci
 
+      # Fails below the per-directory floors in package.json
+      # (jest.coverageThreshold).
       - name: Test
-        run: npx jest --ci
+        run: npx jest --ci --coverage --coverageReporters=text-summary --coverageReporters=json-summary
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          [ -f coverage/coverage-summary.json ] || exit 0
+          node -e '
+          const summary = require("./coverage/coverage-summary.json");
+          const root = process.cwd() + "/";
+          const pct = (covered, total) =>
+            total ? ((100 * covered) / total).toFixed(1) + "%" : "n/a";
+          const rows = [["All files", summary.total.lines, summary.total.branches]];
+          for (const dir of ["store/", "utils/db/", "utils/", "hooks/"]) {
+            const lines = { covered: 0, total: 0 };
+            const branches = { covered: 0, total: 0 };
+            for (const [file, entry] of Object.entries(summary)) {
+              if (!file.startsWith(root + dir)) continue;
+              lines.covered += entry.lines.covered;
+              lines.total += entry.lines.total;
+              branches.covered += entry.branches.covered;
+              branches.total += entry.branches.total;
+            }
+            rows.push([dir, lines, branches]);
+          }
+          console.log("| Coverage | Lines | Branches |");
+          console.log("| --- | --- | --- |");
+          for (const [name, l, b] of rows) {
+            console.log(`| ${name} | ${pct(l.covered, l.total)} | ${pct(b.covered, b.total)} |`);
+          }
+          ' >> "$GITHUB_STEP_SUMMARY"
 
       # Report only: unused files and dependencies (config in knip.json).
       - name: Unused code report
         continue-on-error: true
         run: npx --yes knip@6 --include files,dependencies,unlisted,binaries
+
+  # Firestore security rules against the emulator (rules-tests/). The emulator
+  # needs Java; the suite imports no app code, so no stubs are needed.
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: npm ci
+
+      - run: npm install -g firebase-tools@15
+
+      - name: Rules tests
+        run: npm run test:rules
 
   # Day attribution (streaks, the calendar, weekly goals) is computed in the
   # device's local timezone, so a suite that only ever runs at UTC cannot catch

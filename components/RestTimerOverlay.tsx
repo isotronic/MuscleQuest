@@ -121,6 +121,7 @@ export default function RestTimerOverlay({
       <View style={styles.row}>
         <TouchableOpacity
           style={[styles.adjustButton, isLarge && styles.adjustButtonLarge]}
+          testID="rest-remove"
           onPress={() => onAdjust(-increment)}
           accessibilityRole="button"
           accessibilityLabel={removeLabel}
@@ -137,11 +138,13 @@ export default function RestTimerOverlay({
           // screen. The countdown is also announced, so nothing is lost.
           maxFontSizeMultiplier={1.5}
           accessibilityLabel={t`Rest time left, ${countdown}`}
+          testID="rest-countdown"
         >
           {countdown}
         </ThemedText>
         <TouchableOpacity
           style={[styles.adjustButton, isLarge && styles.adjustButtonLarge]}
+          testID="rest-add"
           onPress={() => onAdjust(increment)}
           accessibilityRole="button"
           accessibilityLabel={addLabel}
@@ -156,6 +159,7 @@ export default function RestTimerOverlay({
       <Button
         mode="text"
         compact
+        testID="rest-skip"
         onPress={onSkip}
         accessibilityLabel={t`Skip rest`}
         labelStyle={isLarge ? styles.skipLabelLarge : undefined}

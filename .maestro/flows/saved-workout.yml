@@ -1,0 +1,142 @@
+# From home: create a saved workout on the plans tab, train it with a set
+# note and a session note, then start it again from the workout picker and
+# fill a set from last time's values.
+appId: com.isotronic.musclequest
+---
+- runFlow: open-plans-tab.yml
+- tapOn:
+    id: "plans-new-workout"
+- extendedWaitUntil:
+    visible:
+      id: "workout-name-input-0"
+    timeout: 15000
+- tapOn:
+    id: "workout-name-input-0"
+- inputText: "Kestrel"
+- hideKeyboard
+- tapOn:
+    id: "workout-add-exercise-0"
+- runFlow:
+    file: pick-exercise.yml
+    env:
+      SEARCH: "Barbell Curl"
+- tapOn:
+    id: "exercise-picker-add"
+- tapOn:
+    id: "workout-save"
+- scrollUntilVisible:
+    element: "Kestrel"
+    timeout: 15000
+- tapOn: "Kestrel"
+- tapOn:
+    id: "standalone-start"
+- extendedWaitUntil:
+    visible:
+      id: "workout-exercise-0"
+    timeout: 15000
+- tapOn:
+    id: "workout-exercise-0"
+# A set note on the set on screen.
+- tapOn:
+    id: "set-note-button"
+    childOf:
+      id: "session-current-set"
+- tapOn:
+    id: "note-input"
+- inputText: "E2E set note"
+- hideKeyboard
+- tapOn:
+    id: "note-close"
+- runFlow:
+    file: log-set.yml
+    env:
+      WEIGHT: "30"
+      REPS: "10"
+- extendedWaitUntil:
+    visible:
+      id: "rest-skip"
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: "rest-skip"
+    commands:
+      - tapOn:
+          id: "rest-skip"
+- back
+# A session note on the overview.
+- scrollUntilVisible:
+    element:
+      id: "session-note-add"
+- tapOn:
+    id: "session-note-add"
+- tapOn:
+    id: "note-input"
+- inputText: "E2E session note"
+- hideKeyboard
+- tapOn:
+    id: "note-close"
+- extendedWaitUntil:
+    visible:
+      id: "session-note-edit"
+    timeout: 15000
+- runFlow: finish-workout.yml
+- scrollUntilVisible:
+    element: "E2E session note"
+    timeout: 30000
+- runFlow: close-summary.yml
+# Relaunch before training it again: saving does not refresh the cached
+# per-workout history yet, so within five minutes the next session would
+# show none. Remove the relaunch once that is fixed.
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "home-choose-workout"
+    timeout: 60000
+# Again, from the picker on home.
+- tapOn:
+    id: "home-choose-workout"
+# The search matches any word, so the name shares none with other workouts.
+- tapOn:
+    id: "workout-picker-search"
+- inputText: "Kestrel"
+- hideKeyboard
+- tapOn:
+    id: "workout-item-start"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "workout-exercise-0"
+    timeout: 15000
+- tapOn:
+    id: "workout-exercise-0"
+# Last time's values and note are offered on the first set.
+- extendedWaitUntil:
+    visible:
+      id: "use-last-time"
+      childOf:
+        id: "session-current-set"
+    timeout: 15000
+- assertVisible:
+    id: "last-time-note"
+    childOf:
+      id: "session-current-set"
+- tapOn:
+    id: "set-weight-input"
+    childOf:
+      id: "session-current-set"
+- eraseText
+- hideKeyboard
+- tapOn:
+    id: "use-last-time"
+    childOf:
+      id: "session-current-set"
+- assertVisible:
+    id: "set-weight-input"
+    text: "30"
+    childOf:
+      id: "session-current-set"
+- back
+- runFlow: discard-workout.yml

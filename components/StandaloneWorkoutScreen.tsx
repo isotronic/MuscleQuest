@@ -230,6 +230,7 @@ export default function StandaloneWorkoutScreen() {
               <AppIconButton
                 accessibilityLabel={t`Delete workout`}
                 accessibilityHint={t`Deletes this workout. Your workout history is kept.`}
+                testID="standalone-delete"
                 icon="trash-can-outline"
                 size={25}
                 iconColor={colors.danger}
@@ -311,6 +312,7 @@ export default function StandaloneWorkoutScreen() {
       <View style={styles.startButtonContainer}>
         <Button
           mode="contained"
+          testID="standalone-start"
           onPress={handleStart}
           disabled={isStarting || workout.exercises.length === 0}
           theme={{ colors: { primary: colors.accent } }}
@@ -321,6 +323,7 @@ export default function StandaloneWorkoutScreen() {
         </Button>
         <Button
           mode="outlined"
+          testID="standalone-edit"
           onPress={handleEdit}
           theme={{ colors: { primary: colors.accent } }}
           style={styles.editButton}

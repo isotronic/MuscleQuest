@@ -1,0 +1,27 @@
+# Everything, before a release. The flows run in order on one install, so
+# each starts and ends on home. Order matters:
+# - plan overview actions need the starter plan active and progression on
+# - logging a past workout starts from the saved workout
+# - plan editing deletes the plan it activates
+# - body weight switches the weight unit, so it runs last
+appId: com.isotronic.musclequest
+---
+- runFlow: flows/start-with-plan.yml
+- runFlow: flows/plan-workout.yml
+- runFlow: flows/quick-workout.yml
+- runFlow: flows/progression.yml
+- runFlow: flows/plan-overview-actions.yml
+- runFlow: flows/superset-session.yml
+- runFlow: flows/session-edits.yml
+- runFlow: flows/list-logging.yml
+- runFlow: flows/saved-workout.yml
+- runFlow: flows/log-past-workout.yml
+- runFlow: flows/history-edit.yml
+- runFlow: flows/exercise-favorite.yml
+- runFlow: flows/custom-exercise.yml
+- runFlow: flows/plan-editing.yml
+- runFlow: flows/stats-customize.yml
+- runFlow: flows/measurements.yml
+- runFlow: flows/weekly-goal.yml
+- runFlow: flows/navigation.yml
+- runFlow: flows/body-weight.yml

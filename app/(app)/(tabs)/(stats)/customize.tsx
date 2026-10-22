@@ -125,6 +125,7 @@ export default function CustomizeStatsScreen() {
           )}
           <Switch
             accessibilityLabel={t`Show ${title}`}
+            testID={`widget-toggle-${item.id}`}
             value={item.visible}
             onValueChange={(visible) =>
               save(setWidgetVisible(layout, item.id, visible))

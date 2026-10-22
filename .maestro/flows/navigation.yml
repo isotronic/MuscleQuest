@@ -1,0 +1,79 @@
+# From home: open the screens that only need to show up, and add a plate.
+appId: com.isotronic.musclequest
+---
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "menu-help"
+- extendedWaitUntil:
+    visible:
+      id: "help-chip-.*"
+    timeout: 15000
+- back
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "menu-changelog"
+- extendedWaitUntil:
+    visible:
+      id: "changelog-release-.*"
+    timeout: 15000
+- back
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "menu-exercise-library"
+- extendedWaitUntil:
+    visible:
+      id: "exercise-row"
+    timeout: 15000
+- tapOn:
+    id: "exercise-row"
+    index: 0
+- extendedWaitUntil:
+    notVisible:
+      id: "exercise-row"
+    timeout: 15000
+- back
+- back
+# Settings search opens the screen with the matching row.
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "menu-settings"
+- tapOn:
+    id: "settings-search"
+- inputText: "plates"
+- hideKeyboard
+- tapOn:
+    id: "settings-result-plates"
+- extendedWaitUntil:
+    visible:
+      id: "setting-plates"
+    timeout: 15000
+# Already on the workout settings, which hold the plates.
+- scrollUntilVisible:
+    element:
+      id: "setting-plates"
+- tapOn:
+    id: "setting-plates"
+- scrollUntilVisible:
+    element:
+      id: "plate-weight-input"
+- tapOn:
+    id: "plate-weight-input"
+# A size that is in neither the lbs nor the kg defaults.
+- inputText: "3"
+- hideKeyboard
+- tapOn:
+    id: "plate-add"
+- assertVisible: "3 (lbs|kg)"
+- scrollUntilVisible:
+    element:
+      id: "plate-save"
+- tapOn:
+    id: "plate-save"
+- back
+- back
+- tapOn:
+    id: "tab-home"

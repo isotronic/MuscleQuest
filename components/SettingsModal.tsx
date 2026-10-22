@@ -184,6 +184,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         onChangeValue(Math.max(Number(inputValue) - 1, 0))
                       }
                       accessibilityLabel={t`Decrease`}
+                      testID="settings-modal-decrease"
                     />
                     <TextInput
                       value={inputValue.toString()}
@@ -203,6 +204,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       color={colors.contentPrimary}
                       onPress={() => onChangeValue(Number(inputValue) + 1)}
                       accessibilityLabel={t`Increase`}
+                      testID="settings-modal-increase"
                     />
                   </View>
                 </View>
@@ -217,6 +219,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <View key={option} style={styles.radioItem}>
                       <RadioButton
                         value={option}
+                        testID={`setting-option-${option}`}
                         {...checkboxLabel(optionLabels?.[option] ?? option)}
                       />
                       <ThemedText {...checkboxCaptionA11y}>
@@ -248,6 +251,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </ThemedText>
                   <AppSlider
                     style={styles.slider}
+                    testID="settings-modal-slider"
                     value={Number(inputValue)}
                     min={sliderMin}
                     max={sliderMax}
@@ -305,6 +309,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </Button>
                 <Button
                   mode="contained"
+                  testID="settings-modal-save"
                   onPress={
                     settingType === "restTime"
                       ? handleSaveRestTime

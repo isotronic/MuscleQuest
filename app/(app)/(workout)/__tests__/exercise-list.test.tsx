@@ -218,8 +218,10 @@ describe("ExerciseListScreen", () => {
 
   it("starts timing the first set on opening, unless resting", () => {
     expect(store().currentSetStartedAt).toBeNull();
-    render(<ExerciseListScreen />);
+    const first = render(<ExerciseListScreen />);
     expect(store().currentSetStartedAt).not.toBeNull();
+    // Re-seeding the store would re-render a still-mounted screen outside act.
+    first.unmount();
 
     start([exercise(1, "Bench", 3)]);
     store().startTimer(new Date(Date.now() + 60_000));

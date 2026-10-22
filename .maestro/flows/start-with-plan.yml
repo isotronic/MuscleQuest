@@ -1,0 +1,20 @@
+# Fresh install that picks the first starter plan and makes it active.
+appId: com.isotronic.musclequest
+---
+- runFlow: onboarding.yml
+- tapOn:
+    id: "starter-plan-0"
+- extendedWaitUntil:
+    visible:
+      id: "plan-activate"
+    timeout: 15000
+- tapOn:
+    id: "plan-activate"
+# Picking a starter plan leaves the plans tab stuck on its overview (no way
+# back to the list) until the app restarts, so relaunch. Remove once fixed.
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "tab-home"
+    timeout: 60000

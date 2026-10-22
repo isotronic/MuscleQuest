@@ -1,0 +1,184 @@
+# From home: create a custom distance exercise in the plan editor, then log
+# it by distance and a library exercise by time in a quick workout.
+appId: com.isotronic.musclequest
+---
+- runFlow: open-plans-tab.yml
+- tapOn:
+    id: "plans-new-plan"
+- extendedWaitUntil:
+    visible:
+      id: "plan-name-input"
+    timeout: 15000
+- tapOn:
+    id: "plan-name-input"
+- inputText: "E2E Cardio"
+- hideKeyboard
+- tapOn:
+    id: "plan-add-workout"
+- tapOn:
+    id: "workout-name-input-0"
+- inputText: "Run Day"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "workout-add-exercise-0"
+- tapOn:
+    id: "workout-add-exercise-0"
+- extendedWaitUntil:
+    visible:
+      id: "exercise-picker-create"
+    timeout: 15000
+- tapOn:
+    id: "exercise-picker-create"
+- extendedWaitUntil:
+    visible:
+      id: "custom-exercise-name"
+    timeout: 15000
+- tapOn:
+    id: "custom-exercise-name"
+- inputText: "E2E Run"
+- hideKeyboard
+# Each dropdown option's id is its stored value. The lists show about four
+# options without scrolling, so pick early ones.
+- tapOn:
+    id: "custom-exercise-body-part"
+- tapOn:
+    id: "cardio"
+- tapOn:
+    id: "custom-exercise-target"
+- tapOn:
+    id: "abs"
+- scrollUntilVisible:
+    element:
+      id: "custom-exercise-equipment"
+- tapOn:
+    id: "custom-exercise-equipment"
+- tapOn:
+    id: "cable"
+- scrollUntilVisible:
+    element:
+      id: "custom-exercise-tracking"
+- tapOn:
+    id: "custom-exercise-tracking"
+# Distance is the last of five options and the list shows four. Near the
+# bottom of the screen it opens upwards in reverse order, so scroll the open
+# list whichever way brings distance into view.
+- runFlow:
+    when:
+      notVisible:
+        id: "distance"
+    commands:
+      - swipe:
+          from:
+            id: "time"
+          direction: DOWN
+- runFlow:
+    when:
+      notVisible:
+        id: "distance"
+    commands:
+      - swipe:
+          from:
+            id: "time"
+          direction: UP
+- tapOn:
+    id: "distance"
+- scrollUntilVisible:
+    element:
+      id: "custom-exercise-save"
+- tapOn:
+    id: "custom-exercise-save"
+# The new exercise comes back ticked.
+- extendedWaitUntil:
+    visible:
+      id: "exercise-picker-add"
+    timeout: 15000
+- tapOn:
+    id: "exercise-picker-add"
+- tapOn:
+    id: "plan-save"
+- tapOn:
+    id: "tab-home"
+- scrollUntilVisible:
+    element:
+      id: "home-quick-workout"
+    timeout: 15000
+- tapOn:
+    id: "home-quick-workout"
+- tapOn:
+    id: "workout-add-exercise"
+- runFlow:
+    file: pick-exercise.yml
+    env:
+      SEARCH: "E2E Run"
+- runFlow:
+    file: pick-exercise.yml
+    env:
+      SEARCH: "Jump Rope"
+- tapOn:
+    id: "exercise-picker-add"
+# By name: the order of two exercises picked together is not guaranteed.
+- tapOn: "E2E Run"
+- tapOn:
+    id: "set-distance-input"
+    point: "90%, 50%"
+    childOf:
+      id: "session-current-set"
+- eraseText
+- inputText: "5"
+- hideKeyboard
+- tapOn:
+    id: "complete-set"
+    childOf:
+      id: "session-current-set"
+# Rest starts a moment after a completed set; skip it if it does.
+- extendedWaitUntil:
+    visible:
+      id: "rest-skip"
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: "rest-skip"
+    commands:
+      - tapOn:
+          id: "rest-skip"
+- back
+- tapOn: "Jump Rope"
+- tapOn:
+    id: "set-time-input-first"
+    point: "90%, 50%"
+    childOf:
+      id: "session-current-set"
+- eraseText
+- inputText: "1"
+- tapOn:
+    id: "set-time-input-second"
+    point: "90%, 50%"
+    childOf:
+      id: "session-current-set"
+- eraseText
+- inputText: "30"
+- hideKeyboard
+- tapOn:
+    id: "complete-set"
+    childOf:
+      id: "session-current-set"
+# Rest starts a moment after a completed set; skip it if it does.
+- extendedWaitUntil:
+    visible:
+      id: "rest-skip"
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: "rest-skip"
+    commands:
+      - tapOn:
+          id: "rest-skip"
+- back
+- runFlow: finish-workout.yml
+- runFlow: skip-save-offer.yml
+- runFlow: close-summary.yml

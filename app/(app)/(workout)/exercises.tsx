@@ -197,6 +197,7 @@ export default function ExercisesScreen() {
         <View style={styles.searchContainer}>
           <TextInput
             accessibilityLabel={t`Search exercises`}
+            testID="exercise-search"
             style={styles.searchInput}
             placeholderTextColor={colors.contentPrimary}
             placeholder={t`Search`}
@@ -247,6 +248,7 @@ export default function ExercisesScreen() {
               disabled={selectedExercises.length === 0}
               style={styles.bottomButton}
               labelStyle={styles.addButtonLabel}
+              testID="exercise-picker-add"
               onPress={handleConfirmAppend}
             >
               <Trans>Add ({selectedExercises.length})</Trans>

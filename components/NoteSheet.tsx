@@ -79,6 +79,7 @@ export const NoteSheet = forwardRef<NoteSheetHandle, NoteSheetProps>(
           >
             {/* Header with close arrow */}
             <TouchableOpacity
+              testID="note-close"
               onPress={() => bottomSheetRef.current?.dismiss()}
               style={{ alignSelf: "flex-start" }}
               accessibilityRole="button"
@@ -112,6 +113,7 @@ export const NoteSheet = forwardRef<NoteSheetHandle, NoteSheetProps>(
                 }}
                 placeholder={placeholder}
                 accessibilityLabel={title}
+                testID="note-input"
                 placeholderTextColor={colors.contentSecondary}
                 multiline
                 maxLength={500}

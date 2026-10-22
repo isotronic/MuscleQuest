@@ -68,6 +68,7 @@ export default function SettingsScreen() {
     <TouchableOpacity
       key={doc.id}
       accessibilityRole="button"
+      testID={`settings-result-${doc.id}`}
       style={styles.result}
       onPress={() => openScreen(doc.screen, settingTarget(doc.id, state))}
     >
@@ -101,6 +102,7 @@ export default function SettingsScreen() {
             returnKeyType="search"
             autoCorrect={false}
             accessibilityLabel={t`Search settings`}
+            testID="settings-search"
           />
           {query !== "" && (
             <TouchableOpacity
@@ -134,6 +136,7 @@ export default function SettingsScreen() {
                 key={screen.id}
                 icon={screen.icon}
                 title={_(screen.title)}
+                testID={`settings-${screen.id}`}
                 onPress={() => openScreen(screen.id)}
                 trailing={
                   <AppIcon

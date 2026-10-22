@@ -383,6 +383,7 @@ export default function AddCustomExerciseScreen() {
             </ThemedText>
             <TextInput
               accessibilityLabel={t`Exercise name`}
+              testID="custom-exercise-name"
               placeholder={t`Enter exercise name`}
               value={name}
               onChangeText={(v: string) => {
@@ -429,6 +430,7 @@ export default function AddCustomExerciseScreen() {
             </ThemedText>
             <AppSelect
               data={bodyPartOptions}
+              testID="custom-exercise-body-part"
               value={bodyPart}
               onChange={(v) => {
                 setBodyPart(v);
@@ -450,6 +452,7 @@ export default function AddCustomExerciseScreen() {
             </ThemedText>
             <AppSelect
               data={muscleOptions}
+              testID="custom-exercise-target"
               value={targetMuscle}
               onChange={(v) => {
                 setTargetMuscle(v);
@@ -499,6 +502,7 @@ export default function AddCustomExerciseScreen() {
             </ThemedText>
             <AppSelect
               data={equipmentOptions}
+              testID="custom-exercise-equipment"
               value={equipment}
               onChange={(v) => {
                 setEquipment(v);
@@ -522,6 +526,7 @@ export default function AddCustomExerciseScreen() {
             </ThemedText>
             <AppSelect
               data={trackingTypeOptions}
+              testID="custom-exercise-tracking"
               value={trackingType}
               onChange={(v) => {
                 setTrackingType(v);
@@ -601,6 +606,7 @@ export default function AddCustomExerciseScreen() {
           <Button
             mode="contained"
             labelStyle={styles.buttonLabel}
+            testID="custom-exercise-save"
             onPress={handleSubmit}
             style={{ marginTop: 8 }}
           >

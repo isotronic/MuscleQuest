@@ -24,6 +24,8 @@ interface AppSelectBaseProps {
   disabled?: boolean;
   /** What the field is, e.g. "Equipment"; the current selection is appended. */
   accessibilityLabel?: string;
+  /** E2E id for the field; each option's id is its value. */
+  testID?: string;
 }
 
 interface AppSelectSingleProps extends AppSelectBaseProps {
@@ -68,6 +70,8 @@ export function AppSelect(props: AppSelectProps) {
 
   const sharedProps = {
     accessibilityLabel,
+    testID: props.testID,
+    itemTestIDField: "value" as const,
     data: props.data,
     labelField: "label" as const,
     valueField: "value" as const,

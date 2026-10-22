@@ -226,6 +226,7 @@ export default function SessionSetInfo({
             <AppIconButton
               icon={hasNote ? "note-edit-outline" : "note-plus-outline"}
               accessibilityLabel={hasNote ? t`Edit set note` : t`Add set note`}
+              testID="set-note-button"
               onPress={onEditNote}
               size={26}
               iconColor={colors.contentPrimary}
@@ -358,6 +359,7 @@ export default function SessionSetInfo({
               placeholderTextColor={colors.contentPrimary}
               value={weight}
               accessibilityLabel={weightInputLabel}
+              testID="set-weight-input"
               onChangeValue={handleWeightInputChange}
               selectTextOnFocus
               style={styles.input}
@@ -391,6 +393,7 @@ export default function SessionSetInfo({
               placeholderTextColor={colors.contentPrimary}
               value={reps}
               accessibilityLabel={t`Reps, set ${setNumber}`}
+              testID="set-reps-input"
               onChangeText={(text: string) =>
                 handleRepsInputChange(sanitizeIntegerInput(text))
               }
@@ -420,6 +423,7 @@ export default function SessionSetInfo({
               value={displayValue}
               onChange={handleTimeInputChange}
               accessibilityLabel={t`Time, set ${setNumber}`}
+              testID="set-time-input"
               style={styles.input}
             />
           </View>
@@ -466,6 +470,7 @@ export default function SessionSetInfo({
               placeholderTextColor={colors.contentPrimary}
               value={distance}
               accessibilityLabel={t`Distance in ${distanceUnit}, set ${setNumber}`}
+              testID="set-distance-input"
               onChangeValue={handleDistanceInputChange}
               selectTextOnFocus
               style={styles.input}
@@ -494,6 +499,7 @@ export default function SessionSetInfo({
       )}
       <Button
         mode={currentSetCompleted ? "outlined" : "contained"}
+        testID="complete-set"
         onPress={handleCompleteSet}
         accessibilityLabel={
           currentSetCompleted

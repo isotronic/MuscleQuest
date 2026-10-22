@@ -2,6 +2,7 @@ import {
   buildFeedbackPayload,
   isBelowTarget,
   mergePrompts,
+  savedCatchUpPrompts,
   withoutExercise,
   type FeedbackPrompt,
 } from "@/utils/feedbackPrompts";
@@ -82,5 +83,35 @@ describe("mergePrompts", () => {
 
   it("withoutExercise drops that exercise only", () => {
     expect(withoutExercise([prompt(1), prompt(2)], 1)).toEqual([prompt(2)]);
+  });
+});
+
+describe("savedCatchUpPrompts", () => {
+  it("keeps a prompt whose plan row was saved", () => {
+    expect(
+      savedCatchUpPrompts(
+        [prompt(1)],
+        [{ user_workout_exercise_id: 1, exercise_id: 10 }],
+      ),
+    ).toEqual([prompt(1)]);
+  });
+
+  it("drops a prompt whose row was skipped, even if the exercise was saved under another row", () => {
+    // prompt(1) is exercise 10 on row 1; row 2 also logged exercise 10.
+    expect(
+      savedCatchUpPrompts(
+        [prompt(1)],
+        [{ user_workout_exercise_id: 2, exercise_id: 10 }],
+      ),
+    ).toEqual([]);
+  });
+
+  it("keeps a prompt by exercise when it was saved without a row", () => {
+    expect(
+      savedCatchUpPrompts(
+        [prompt(1), prompt(2)],
+        [{ user_workout_exercise_id: null, exercise_id: 10 }],
+      ),
+    ).toEqual([prompt(1)]);
   });
 });

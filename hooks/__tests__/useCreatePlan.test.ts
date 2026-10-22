@@ -1,10 +1,16 @@
 import { renderHook, act } from "@testing-library/react-native";
 import { useCreatePlan } from "../useCreatePlan";
-import { updateWorkoutPlan, openDatabase } from "@/utils/database";
+import {
+  updateWorkoutPlan,
+  openDatabase,
+  savePlanSchedule,
+  updateSettings,
+} from "@/utils/database";
 import { publishPlan } from "@/utils/sharing";
 import { useSocialStore } from "@/store/socialStore";
 import { useWorkoutStore } from "@/store/workoutStore";
 import { getDoc } from "@react-native-firebase/firestore";
+import Bugsnag from "@bugsnag/expo";
 
 const mockUser = { uid: "user-123" };
 
@@ -185,5 +191,102 @@ describe("useCreatePlan - editing an existing plan", () => {
 
     expect(result.current.planSaved).toBe(true);
     expect(publishPlan).not.toHaveBeenCalled();
+  });
+});
+
+describe("useCreatePlan - schedule save", () => {
+  const mockScheduleDb = (activePlanId: number | null) =>
+    (openDatabase as jest.Mock).mockResolvedValue({
+      getAllAsync: jest.fn(() => Promise.resolve([{ id: 31 }, { id: 32 }])),
+      getFirstAsync: jest.fn(() =>
+        Promise.resolve(activePlanId === null ? null : { id: activePlanId }),
+      ),
+      closeAsync: jest.fn(() => Promise.resolve()),
+    });
+
+  const save = async (planSchedule: Record<number, number>) => {
+    (useWorkoutStore as unknown as jest.Mock).mockReturnValue({
+      workouts: [
+        { id: 1, name: "Workout A" },
+        { id: 2, name: "Workout B" },
+      ],
+      planImageUrl: null,
+      setPlanImageUrl: jest.fn(),
+      planSchedule,
+      clearDraft: jest.fn(),
+    });
+    const { result } = renderHook(() => useCreatePlan());
+    act(() => {
+      result.current.setPlanName("Push Day");
+    });
+    await act(async () => {
+      await result.current.handleSavePlan(42, null);
+    });
+    return result;
+  };
+
+  const invalidatedKeys = () =>
+    mockInvalidateQueries.mock.calls.map(([arg]) => arg.queryKey);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useSocialStore as unknown as jest.Mock).mockReturnValue({
+      privacySettings: { sharePlans: false },
+      publishedPlanIds: [],
+    });
+    mockScheduleDb(null);
+  });
+
+  it("saves each day against the saved workout's id", async () => {
+    await save({ 1: 0, 4: 1 });
+
+    expect(savePlanSchedule).toHaveBeenCalledWith(42, [
+      { day_of_week: 1, workout_id: 31 },
+      { day_of_week: 4, workout_id: 32 },
+    ]);
+    expect(invalidatedKeys()).toContainEqual(["planSchedule", 42]);
+  });
+
+  it("drops a day whose workout was not saved", async () => {
+    await save({ 1: 0, 4: 5 });
+
+    expect(savePlanSchedule).toHaveBeenCalledWith(42, [
+      { day_of_week: 1, workout_id: 31 },
+    ]);
+  });
+
+  it("syncs the weekly goal when the plan is active", async () => {
+    mockScheduleDb(42);
+
+    await save({ 1: 0, 4: 1 });
+
+    expect(updateSettings).toHaveBeenCalledWith("weeklyGoal", "2");
+    expect(invalidatedKeys()).toContainEqual(["settings"]);
+  });
+
+  it("leaves the weekly goal alone for another plan", async () => {
+    mockScheduleDb(7);
+
+    await save({ 1: 0, 4: 1 });
+
+    expect(updateSettings).not.toHaveBeenCalled();
+    expect(invalidatedKeys()).not.toContainEqual(["settings"]);
+  });
+
+  it("clears the schedule when it is empty", async () => {
+    await save({});
+
+    expect(savePlanSchedule).toHaveBeenCalledWith(42, []);
+  });
+
+  it("reports a failed schedule save and still saves the plan", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    const error = new Error("disk full");
+    (savePlanSchedule as jest.Mock).mockRejectedValueOnce(error);
+
+    const result = await save({ 1: 0 });
+
+    expect(Bugsnag.notify).toHaveBeenCalledWith(error);
+    expect(result.current.planSaved).toBe(true);
   });
 });

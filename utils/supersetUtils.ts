@@ -70,3 +70,50 @@ export function classifySupersetPosition(
     isSecondInSuperset: isInSuperset && index > partnerIndex,
   };
 }
+
+/**
+ * A solo exercise, or a superset pair shown (and dragged) as one unit.
+ */
+export type GroupedExerciseItem =
+  | { type: "single"; exercise: UserExercise; exerciseIndex: number }
+  | {
+      type: "superset";
+      exercises: [UserExercise, UserExercise];
+      exerciseIndices: [number, number];
+    };
+
+/**
+ * Groups exercises for display: each superset pair becomes one item at the
+ * position of its first exercise, every other exercise its own item.
+ */
+export function groupExercisesBySuperset(
+  exercises: UserExercise[],
+): GroupedExerciseItem[] {
+  const result: GroupedExerciseItem[] = [];
+  const seen = new Set<number>();
+
+  exercises.forEach((exercise, i) => {
+    if (seen.has(i)) return;
+    seen.add(i);
+
+    const { supersetGroupId } = exercise;
+    if (supersetGroupId) {
+      const partnerIdx = exercises.findIndex(
+        (e, j) => j !== i && e.supersetGroupId === supersetGroupId,
+      );
+      const partner = partnerIdx !== -1 ? exercises[partnerIdx] : null;
+      if (partner && !seen.has(partnerIdx)) {
+        seen.add(partnerIdx);
+        result.push({
+          type: "superset",
+          exercises: [exercise, partner],
+          exerciseIndices: [i, partnerIdx],
+        });
+        return;
+      }
+    }
+    result.push({ type: "single", exercise, exerciseIndex: i });
+  });
+
+  return result;
+}

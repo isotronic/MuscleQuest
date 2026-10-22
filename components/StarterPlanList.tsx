@@ -44,9 +44,10 @@ export function StarterPlanList({
 
   return (
     <View>
-      {starterPlans.map(({ plan, id, description }) => (
+      {starterPlans.map(({ plan, id, description }, index) => (
         <Pressable
           key={id}
+          testID={`starter-plan-${index}`}
           accessibilityRole="button"
           style={styles.planRow}
           onPress={() => onSelect(id)}

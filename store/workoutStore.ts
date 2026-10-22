@@ -127,6 +127,20 @@ function supersetPartnerIndex(
   );
 }
 
+/**
+ * The sets resized to `count`: trimmed, or padded with copies of the last set.
+ * The halves of a superset are done in rounds, so they keep equal set counts.
+ */
+function matchSetCount(sets: Set[], count: number): Set[] {
+  if (sets.length === 0 || sets.length === count) return sets;
+  if (sets.length > count) return sets.slice(0, count);
+  const last = sets[sets.length - 1];
+  return [
+    ...sets,
+    ...Array.from({ length: count - sets.length }, () => ({ ...last })),
+  ];
+}
+
 const useWorkoutStore = create<WorkoutStore>()(
   persist(
     (set) => ({
@@ -277,9 +291,22 @@ const useWorkoutStore = create<WorkoutStore>()(
             newExercise.sets = defaultSets;
           }
 
+          // The replacement takes the old row's place in its superset.
+          const partner = supersetPartnerIndex(
+            workout.exercises,
+            exerciseIndex,
+          );
+          if (partner !== -1) {
+            newExercise.sets = matchSetCount(
+              newExercise.sets,
+              workout.exercises[partner].sets.length,
+            );
+          }
+
           const updatedExercises = [...workout.exercises];
           updatedExercises[exerciseIndex] = {
             ...newExercise,
+            supersetGroupId: oldExercise.supersetGroupId,
             clientKey: Crypto.randomUUID(),
           };
           updatedWorkouts[workoutIndex] = {
@@ -460,6 +487,10 @@ const useWorkoutStore = create<WorkoutStore>()(
             };
             exercises.splice(exerciseIndex + 1, 0, {
               ...newExercise,
+              sets: matchSetCount(
+                newExercise.sets,
+                exercises[exerciseIndex].sets.length,
+              ),
               supersetGroupId: groupId,
               clientKey: Crypto.randomUUID(),
             });

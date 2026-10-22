@@ -188,6 +188,7 @@ export const ListSetRow = forwardRef<TextInput, Props>(function ListSetRow(
           }}
           accessibilityRole="checkbox"
           accessibilityState={{ checked: completed, disabled: completed }}
+          testID="list-set-complete"
           accessibilityLabel={setRowLabel(setNumber, shown?.spoken, completed)}
           accessibilityHint={completed ? undefined : t`Completes the set`}
           style={[styles.check, completed && styles.checkDone]}

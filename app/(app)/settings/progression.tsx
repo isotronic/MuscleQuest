@@ -77,6 +77,7 @@ export default function ProgressionSettingsScreen() {
         icon="trending-up"
         title={<Trans>Suggest load and rep adjustments</Trans>}
         label={t`Suggest load and rep adjustments`}
+        testID="setting-adaptive-progression"
         value={progressionOn ? t`Enabled` : t`Disabled`}
         checked={progressionOn}
         onValueChange={toggleAdaptiveProgression}

@@ -32,6 +32,7 @@ export default function TrainingPlanListItem({
     <Pressable
       style={styles.container}
       onPress={onPress}
+      testID="plan-card"
       accessibilityRole="button"
       accessibilityLabel={`Training plan ${plan.name}`}
     >

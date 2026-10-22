@@ -13,6 +13,7 @@ interface UnitSettingItemProps {
   label: string;
   value: string;
   onPress: () => void;
+  testID?: string;
 }
 
 /**
@@ -25,6 +26,7 @@ export function UnitSettingItem({
   label,
   value,
   onPress,
+  testID,
 }: UnitSettingItemProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -36,6 +38,7 @@ export function UnitSettingItem({
       accessibilityState={{ disabled: locked }}
       disabled={locked}
       style={[styles.item, locked && styles.locked]}
+      testID={testID}
       onPress={onPress}
     >
       <AppIcon

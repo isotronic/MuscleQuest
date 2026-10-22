@@ -108,6 +108,7 @@ export default function StandaloneWorkoutListItem({
         <Button
           mode="outlined"
           onPress={onStart}
+          testID="workout-item-start"
           disabled={disabled}
           labelStyle={styles.startButtonLabel}
           accessibilityLabel={t`Start ${displayWorkoutName(workout.name)}`}

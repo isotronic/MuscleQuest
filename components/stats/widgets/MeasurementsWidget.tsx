@@ -46,6 +46,7 @@ export const MeasurementsWidget: React.FC<{
           mode="text"
           compact
           labelStyle={{ color: colors.accent, fontSize: 13 }}
+          testID="measurements-view-all"
           onPress={openMeasurements}
         >
           <Trans>View All</Trans>

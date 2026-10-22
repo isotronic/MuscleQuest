@@ -18,22 +18,10 @@ import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { planDistanceRange } from "@/utils/planDistance";
 import { instanceName, occurrenceIndex } from "@/utils/exerciseInstance";
-
-// Each item fed to Sortable.Grid is either a solo exercise or an adjacent superset pair.
-// The pair is treated as a single draggable unit so both exercises move together.
-type SingleItem = {
-  type: "single";
-  exercise: UserExercise;
-  exerciseIndex: number;
-};
-
-type SupersetItem = {
-  type: "superset";
-  exercises: [UserExercise, UserExercise];
-  exerciseIndices: [number, number];
-};
-
-type GroupedItem = SingleItem | SupersetItem;
+import {
+  groupExercisesBySuperset,
+  type GroupedExerciseItem,
+} from "@/utils/supersetUtils";
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -152,36 +140,10 @@ export default function WorkoutCard({
   );
 
   // Build the grouped data array. Superset pairs become one item so they drag together.
-  const groupedData = useMemo((): GroupedItem[] => {
-    const result: GroupedItem[] = [];
-    const seen = new Set<number>();
-
-    workout.exercises.forEach((exercise, i) => {
-      if (seen.has(i)) return;
-      seen.add(i);
-
-      const { supersetGroupId } = exercise;
-      if (supersetGroupId) {
-        const partnerIdx = workout.exercises.findIndex(
-          (e, j) => j !== i && e.supersetGroupId === supersetGroupId,
-        );
-        const partner =
-          partnerIdx !== -1 ? workout.exercises[partnerIdx] : null;
-        if (partner && !seen.has(partnerIdx)) {
-          seen.add(partnerIdx);
-          result.push({
-            type: "superset",
-            exercises: [exercise, partner],
-            exerciseIndices: [i, partnerIdx],
-          });
-          return;
-        }
-      }
-      result.push({ type: "single", exercise, exerciseIndex: i });
-    });
-
-    return result;
-  }, [workout.exercises]);
+  const groupedData = useMemo(
+    () => groupExercisesBySuperset(workout.exercises),
+    [workout.exercises],
+  );
 
   // Renders a single exercise row. Used for both solo exercises and each half of a superset.
   const renderExerciseRow = useCallback(
@@ -352,7 +314,7 @@ export default function WorkoutCard({
   );
 
   // Renders each Sortable.Grid item — either a solo row or a superset pair block.
-  const renderItem: SortableGridRenderItem<GroupedItem> = useCallback(
+  const renderItem: SortableGridRenderItem<GroupedExerciseItem> = useCallback(
     ({ item }) => {
       if (item.type === "single") {
         return (
@@ -440,6 +402,7 @@ export default function WorkoutCard({
       )}
       <TextInput
         accessibilityLabel={t`Workout ${index + 1} name`}
+        testID={`workout-name-input-${index}`}
         placeholder={t`Workout name`}
         placeholderTextColor={colors.contentSecondary}
         style={styles.input}
@@ -473,6 +436,7 @@ export default function WorkoutCard({
       <Button
         mode="outlined"
         style={styles.addButton}
+        testID={`workout-add-exercise-${index}`}
         onPress={() => onAddExercise(index)}
       >
         <Trans>Add Exercise</Trans>

@@ -109,7 +109,10 @@ export default function ProgressionSummaryCard({
   };
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.card }]}>
+    <View
+      style={[styles.card, { backgroundColor: colors.card }]}
+      testID="progression-summary"
+    >
       {actionable.length > 0 && (
         <>
           <View style={styles.header}>

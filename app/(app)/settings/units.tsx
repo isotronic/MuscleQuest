@@ -34,6 +34,7 @@ export default function UnitsSettingsScreen() {
         <UnitSettingItem
           icon="weight"
           label={t`Weight unit`}
+          testID="setting-weight-unit"
           value={settings?.weightUnit || ""}
           onPress={() =>
             showOverlay("weightUnit", settings?.weightUnit || "", "radio", [

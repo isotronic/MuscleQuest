@@ -1,4 +1,4 @@
-import { reachedGoalWithWorkout } from "../weeklyGoal";
+import { reachedGoalWithWorkout, trainingDaysThisWeek } from "../weeklyGoal";
 import { toLocalDateKey } from "@/utils/dates";
 import { DEFAULT_WEEK_RULE as MONDAY } from "@/utils/week";
 
@@ -70,5 +70,24 @@ describe("reachedGoalWithWorkout", () => {
 
   it("is false without a goal", () => {
     expect(reachedGoalWithWorkout(workout, [], 0, MONDAY, today)).toBe(false);
+  });
+});
+
+describe("trainingDaysThisWeek", () => {
+  // Sunday 11 October 2026, 23:30 local: still the week of Monday 5 October.
+  const sundayNight = new Date(2026, 9, 11, 23, 30);
+
+  it("counts distinct training days in the current week", () => {
+    const history = [
+      { local_date: day(5) },
+      { local_date: day(5) },
+      { local_date: day(11) },
+    ];
+    expect(trainingDaysThisWeek(history, MONDAY, sundayNight)).toBe(2);
+  });
+
+  it("leaves out last week's sessions", () => {
+    const history = [{ local_date: day(4) }, { local_date: day(9) }];
+    expect(trainingDaysThisWeek(history, MONDAY, sundayNight)).toBe(1);
   });
 });

@@ -1,0 +1,86 @@
+# From home: pair two exercises as a superset in a quick workout, check the
+# session alternates between them with rest only after the round, then
+# restart and discard the workout.
+appId: com.isotronic.musclequest
+---
+- scrollUntilVisible:
+    element:
+      id: "home-quick-workout"
+    timeout: 15000
+- tapOn:
+    id: "home-quick-workout"
+- tapOn:
+    id: "workout-add-exercise"
+- runFlow:
+    file: pick-exercise.yml
+    env:
+      SEARCH: "Barbell Bench Press"
+- tapOn:
+    id: "exercise-picker-add"
+- tapOn:
+    id: "workout-exercise-menu-0"
+- tapOn:
+    id: "exercise-menu-create-superset"
+# In superset mode, ticking an exercise pairs it and returns.
+- runFlow:
+    file: pick-exercise.yml
+    env:
+      SEARCH: "Barbell Bent Over Row"
+- extendedWaitUntil:
+    visible:
+      id: "workout-exercise-0"
+    timeout: 15000
+- tapOn:
+    id: "workout-exercise-0"
+- assertVisible:
+    id: "session-exercise-name"
+    text: ".*Bench Press.*"
+    childOf:
+      id: "session-current-set"
+- runFlow:
+    file: log-set.yml
+    env:
+      WEIGHT: "50"
+      REPS: "10"
+# No rest between the two halves of a round.
+- assertNotVisible:
+    id: "rest-countdown"
+- assertVisible:
+    id: "session-exercise-name"
+    text: ".*Bent Over Row.*"
+    childOf:
+      id: "session-current-set"
+- runFlow:
+    file: log-set.yml
+    env:
+      WEIGHT: "40"
+      REPS: "10"
+- extendedWaitUntil:
+    visible:
+      id: "rest-countdown"
+    timeout: 15000
+- tapOn:
+    id: "rest-skip"
+- assertVisible:
+    id: "session-exercise-name"
+    text: ".*Bench Press.*"
+    childOf:
+      id: "session-current-set"
+- back
+# Restart, then discard; both confirm with a native alert.
+- tapOn:
+    id: "workout-options"
+- tapOn:
+    id: "workout-options-restart"
+- tapOn:
+    id: "android:id/button1"
+- tapOn:
+    id: "workout-options"
+- tapOn:
+    id: "workout-options-discard"
+- tapOn:
+    id: "android:id/button1"
+- extendedWaitUntil:
+    visible:
+      id: "tab-home"
+    timeout: 15000

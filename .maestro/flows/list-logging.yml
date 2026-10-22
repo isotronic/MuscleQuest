@@ -1,0 +1,74 @@
+# From home: log a set in list view, then save the quick workout as a
+# reusable workout and find it on the plans tab.
+appId: com.isotronic.musclequest
+---
+- scrollUntilVisible:
+    element:
+      id: "home-quick-workout"
+    timeout: 15000
+- tapOn:
+    id: "home-quick-workout"
+- tapOn:
+    id: "workout-add-exercise"
+- runFlow:
+    file: pick-exercise.yml
+    env:
+      SEARCH: "Barbell Curl"
+- tapOn:
+    id: "exercise-picker-add"
+- tapOn:
+    id: "workout-options"
+- tapOn:
+    id: "workout-options-logging-style"
+- tapOn:
+    id: "workout-exercise-0"
+- extendedWaitUntil:
+    visible:
+      id: "list-set-complete"
+    timeout: 15000
+- tapOn:
+    id: "list-set-complete"
+    index: 0
+# Completing a row focuses the next one, so the keyboard opens and a plain
+# back would only close it.
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: "rest-skip"
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: "rest-skip"
+    commands:
+      - tapOn:
+          id: "rest-skip"
+- back
+- extendedWaitUntil:
+    visible:
+      id: "workout-options"
+    timeout: 15000
+# Back to one set at a time, which the other flows expect.
+- tapOn:
+    id: "workout-options"
+- tapOn:
+    id: "workout-options-logging-style"
+- runFlow: finish-workout.yml
+- extendedWaitUntil:
+    visible:
+      id: "save-workout-name"
+    timeout: 30000
+- tapOn:
+    id: "save-workout-name"
+- inputText: "E2E Saved"
+- hideKeyboard
+- tapOn:
+    id: "save-workout-save"
+- runFlow: close-summary.yml
+- runFlow: open-plans-tab.yml
+- scrollUntilVisible:
+    element: "E2E Saved"
+    timeout: 15000
+- tapOn:
+    id: "tab-home"

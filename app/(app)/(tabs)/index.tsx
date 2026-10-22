@@ -367,7 +367,7 @@ export default function HomeScreen() {
                 : undefined
             }
           />
-          <ThemedText style={styles.weekCaption}>
+          <ThemedText style={styles.weekCaption} testID="home-week-progress">
             <Trans>
               {uniqueWorkoutDaysCount} of {settings?.weeklyGoal} this week
             </Trans>
@@ -379,6 +379,7 @@ export default function HomeScreen() {
             <Pressable
               accessibilityRole="button"
               style={[styles.workoutCard, styles.resumeCard]}
+              testID="home-resume-workout"
               onPress={resumeActiveWorkout}
             >
               <View style={styles.workoutCardContent}>
@@ -452,6 +453,7 @@ export default function HomeScreen() {
               mode="outlined"
               icon="lightning-bolt"
               textColor={colors.accent}
+              testID="home-quick-workout"
               onPress={startQuickWorkout}
               style={styles.quickButton}
               contentStyle={styles.quickButtonContent}
@@ -462,6 +464,7 @@ export default function HomeScreen() {
               mode="outlined"
               icon="format-list-bulleted"
               textColor={colors.accent}
+              testID="home-choose-workout"
               onPress={() => setShowWorkoutPicker(true)}
               style={styles.quickButton}
               contentStyle={styles.quickButtonContent}
@@ -475,6 +478,7 @@ export default function HomeScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityState={{ expanded: otherWorkoutsOpen }}
+                testID="home-plan-workouts-toggle"
                 onPress={toggleOtherWorkouts}
                 style={styles.otherHeader}
               >
@@ -555,6 +559,7 @@ export default function HomeScreen() {
                               labelStyle={styles.smallButtonLabel}
                               disabled={isStartingWorkout}
                               accessibilityLabel={t`Start ${spokenName}`}
+                              testID={`home-plan-workout-start-${originalIndex}`}
                             >
                               <Trans>Start</Trans>
                             </Button>

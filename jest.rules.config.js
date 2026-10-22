@@ -1,7 +1,7 @@
 // Security rules tests. They need the Firestore emulator, so they run
 // separately from the app suite: `npm run test:rules`. Requires the Firebase
-// CLI (`npm install -g firebase-tools`) and Java 11+ for the emulator. Not run
-// in CI.
+// CLI (`npm install -g firebase-tools`) and Java 11+ for the emulator. CI runs
+// it in the `rules` job.
 module.exports = {
   testEnvironment: "node",
   testMatch: ["<rootDir>/rules-tests/**/*.test.ts"],

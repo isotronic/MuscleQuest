@@ -665,3 +665,126 @@ describe("useSocialListeners - App Check", () => {
     expect(mockOnSnapshot).not.toHaveBeenCalled();
   });
 });
+
+describe("useSocialListeners - every listener resets only its own slice", () => {
+  // Subscription order in the hook. Incoming and sent requests share the
+  // friendRequests ref, so their callbacks are found by position.
+  const listenerOrder = [
+    "pendingRequests",
+    "sentRequests",
+    "friends",
+    "privacySettings",
+    "publishedPlanIds",
+    "publishedWorkoutIds",
+  ];
+  const setters: Record<string, jest.Mock> = {
+    pendingRequests: mockSetPendingRequests,
+    sentRequests: mockSetSentRequests,
+    friends: mockSetFriends,
+    privacySettings: mockSetPrivacySettings,
+    publishedPlanIds: mockSetPublishedPlanIds,
+    publishedWorkoutIds: mockSetPublishedWorkoutIds,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest
+      .requireMock("react")
+      .useContext.mockImplementation(mockAuthContexts(mockUser));
+    mockOnSnapshot.mockImplementation(() => jest.fn());
+  });
+
+  it.each([
+    ["pendingRequests", []],
+    ["sentRequests", []],
+    ["friends", []],
+    ["publishedWorkoutIds", null],
+  ])("%s", async (scope, resetValue) => {
+    const Bugsnag = jest.requireMock("@bugsnag/expo").default;
+    useSocialListeners();
+    await flushAppCheck();
+    const error = Object.assign(new Error("denied"), {
+      code: "firestore/permission-denied",
+    });
+
+    const onError = mockOnSnapshot.mock.calls[listenerOrder.indexOf(scope)][2]!;
+    onError(error);
+
+    expect(setters[scope]).toHaveBeenCalledWith(resetValue);
+    for (const [other, setter] of Object.entries(setters)) {
+      if (other !== scope) expect(setter).not.toHaveBeenCalled();
+    }
+    const event = { addMetadata: jest.fn() };
+    Bugsnag.notify.mock.calls[0][1](event);
+    expect(event.addMetadata).toHaveBeenCalledWith("useSocialListeners", {
+      scope,
+      code: "firestore/permission-denied",
+    });
+  });
+});
+
+describe("useSocialListeners - sent requests", () => {
+  const getDocMock = () =>
+    jest.requireMock("@react-native-firebase/firestore").getDoc as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest
+      .requireMock("react")
+      .useContext.mockImplementation(mockAuthContexts(mockUser));
+    mockOnSnapshot.mockImplementation(() => jest.fn());
+  });
+
+  it("builds each request from the receiver's profile", async () => {
+    const createdAt = new Date("2026-10-01T08:00:00.000Z");
+    getDocMock().mockImplementation((path: string) =>
+      Promise.resolve({
+        data: () =>
+          path === "users/carol"
+            ? { displayName: "Carol", photoURL: "https://example.com/c.jpg" }
+            : undefined,
+      }),
+    );
+    useSocialListeners();
+    await flushAppCheck();
+
+    const onSent = mockOnSnapshot.mock.calls[1][1];
+    await onSent({
+      docs: [
+        {
+          id: "r1",
+          data: () => ({
+            from: "my-uid",
+            to: "carol",
+            createdAt: { toDate: () => createdAt },
+          }),
+        },
+        {
+          id: "r2",
+          data: () => ({
+            from: "my-uid",
+            to: "dave",
+            createdAt: { toDate: () => createdAt },
+          }),
+        },
+      ],
+    });
+
+    expect(mockSetSentRequests).toHaveBeenCalledWith([
+      {
+        id: "r1",
+        toUid: "carol",
+        displayName: "Carol",
+        photoURL: "https://example.com/c.jpg",
+        createdAt,
+      },
+      {
+        id: "r2",
+        toUid: "dave",
+        displayName: "",
+        photoURL: "",
+        createdAt,
+      },
+    ]);
+  });
+});

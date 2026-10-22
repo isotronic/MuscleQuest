@@ -13,6 +13,10 @@ if (process.env.EAS_BUILD_PLATFORM !== "android") {
 } else if (process.env.EAS_BUILD_PROFILE === "development") {
   console.log("Skipping Android source map upload: Development build detected");
   exit(0);
+} else if (process.env.EAS_BUILD_PROFILE === "e2e-test") {
+  // E2E builds report to a placeholder Bugsnag key (eas.json).
+  console.log("Skipping Android source map upload: E2E build detected");
+  exit(0);
 }
 
 const uploadSourceMaps = async () => {

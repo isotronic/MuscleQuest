@@ -25,7 +25,7 @@ interface ExerciseListProps {
 }
 
 type ListRow =
-  | { type: "title"; title: string }
+  | { type: "title"; section: string; title: string }
   | { type: "exercise"; item: Exercise };
 
 const getItemType = (row: ListRow) => row.type;
@@ -47,6 +47,7 @@ const ExerciseList = ({
     if (exercises.favoriteExercises.length > 0) {
       rows.push({
         type: "title",
+        section: "favorites",
         title: sectionTitles?.favorites ?? t`Favorites`,
       });
       rows.push(...exerciseRows(exercises.favoriteExercises));
@@ -55,6 +56,7 @@ const ExerciseList = ({
     if (exercises.activePlanExercises.length > 0) {
       rows.push({
         type: "title",
+        section: "active-plan",
         title: sectionTitles?.activePlan ?? t`Active Plan Exercises`,
       });
       rows.push(...exerciseRows(exercises.activePlanExercises));
@@ -68,6 +70,7 @@ const ExerciseList = ({
       ) {
         rows.push({
           type: "title",
+          section: "other",
           title: sectionTitles?.other ?? t`Other Exercises`,
         });
       }
@@ -109,7 +112,10 @@ const ExerciseList = ({
     ({ item }: { item: ListRow }) => {
       if (item.type === "title") {
         return (
-          <View style={styles.titleContainer}>
+          <View
+            style={styles.titleContainer}
+            testID={`exercise-section-${item.section}`}
+          >
             <ThemedText style={styles.title}>{item.title}</ThemedText>
           </View>
         );

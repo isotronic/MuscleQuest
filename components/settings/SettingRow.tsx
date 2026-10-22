@@ -132,6 +132,7 @@ interface RowProps {
   onPress?: () => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
 /** One settings row: icon, title, current value; pressable when onPress. */
@@ -141,6 +142,7 @@ export function SettingRow({
   disabled,
   style,
   title,
+  testID,
   ...content
 }: RowProps) {
   const styles = useSettingStyles();
@@ -154,11 +156,12 @@ export function SettingRow({
           disabled={disabled}
           style={[styles.item, style]}
           onPress={onPress}
+          testID={testID}
         >
           <RowContent title={title} {...content} />
         </TouchableOpacity>
       ) : (
-        <View style={[styles.item, style]}>
+        <View style={[styles.item, style]} testID={testID}>
           <RowContent title={title} {...content} />
         </View>
       )}
@@ -231,6 +234,7 @@ export function SwitchRow({
   checked,
   onValueChange,
   disabled,
+  testID,
   ...row
 }: SwitchRowProps) {
   const { colors } = useAppTheme();
@@ -241,6 +245,7 @@ export function SwitchRow({
       trailing={
         <Switch
           accessibilityLabel={label}
+          testID={testID}
           value={checked}
           onValueChange={onValueChange}
           disabled={disabled}

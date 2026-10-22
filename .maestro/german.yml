@@ -1,0 +1,13 @@
+# The quick workout on a German device, to catch text that breaks a layout
+# or a flow. The workflow switches the emulator to German before this runs.
+appId: com.isotronic.musclequest
+---
+# Check the device really is German before going on.
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Willkommen bei MuscleQuest"
+    timeout: 60000
+- runFlow: flows/first-launch.yml
+# Search matches the English name too, and Maestro may not type umlauts.
+- runFlow: flows/quick-workout.yml

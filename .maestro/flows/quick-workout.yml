@@ -1,0 +1,53 @@
+# From home: log a set in a quick workout, kill the app, resume the workout
+# after relaunching, finish it, and find it in the stats history.
+appId: com.isotronic.musclequest
+---
+- scrollUntilVisible:
+    element:
+      id: "home-quick-workout"
+    timeout: 15000
+- tapOn:
+    id: "home-quick-workout"
+- extendedWaitUntil:
+    visible:
+      id: "workout-add-exercise"
+    timeout: 15000
+- tapOn:
+    id: "workout-add-exercise"
+- runFlow:
+    file: pick-exercise.yml
+    env:
+      SEARCH: ${EXERCISE || "Bench Press"}
+- tapOn:
+    id: "exercise-picker-add"
+- extendedWaitUntil:
+    visible:
+      id: "workout-exercise-0"
+    timeout: 15000
+- tapOn:
+    id: "workout-exercise-0"
+- runFlow:
+    file: log-set.yml
+    env:
+      WEIGHT: "60"
+      REPS: "8"
+# The session is saved on the device and must survive the app being killed.
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "home-resume-workout"
+    timeout: 60000
+- tapOn:
+    id: "home-resume-workout"
+- runFlow: finish-workout.yml
+- runFlow: skip-save-offer.yml
+- runFlow: close-summary.yml
+- tapOn:
+    id: "tab-stats"
+- scrollUntilVisible:
+    element:
+      id: "history-workout"
+    timeout: 15000
+- tapOn:
+    id: "tab-home"

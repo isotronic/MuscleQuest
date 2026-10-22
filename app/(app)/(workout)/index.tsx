@@ -92,22 +92,12 @@ import {
   confirmUnfinishedSets,
   findUnfinishedSets,
 } from "@/utils/confirmUnfinishedSets";
+import {
+  groupExercisesBySuperset,
+  type GroupedExerciseItem,
+} from "@/utils/supersetUtils";
 
 const FEEDBACK_CARD_MAX_HEIGHT = Dimensions.get("window").height * 0.25;
-
-type SingleItem = {
-  type: "single";
-  exercise: UserExercise;
-  exerciseIndex: number;
-};
-
-type SupersetItem = {
-  type: "superset";
-  exercises: [UserExercise, UserExercise];
-  exerciseIndices: [number, number];
-};
-
-type GroupedItem = SingleItem | SupersetItem;
 
 export default function WorkoutOverviewScreen() {
   const { colors } = useAppTheme();
@@ -190,7 +180,7 @@ export default function WorkoutOverviewScreen() {
   }, []);
 
   const keyExtractor = useCallback(
-    (item: GroupedItem): string =>
+    (item: GroupedExerciseItem): string =>
       item.type === "single"
         ? getStableKey(item.exercise)
         : `ss-${getStableKey(item.exercises[0])}`,
@@ -321,37 +311,10 @@ export default function WorkoutOverviewScreen() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveWorkoutName, setSaveWorkoutName] = useState("");
 
-  const groupedData = useMemo((): GroupedItem[] => {
-    if (!workout) return [];
-    const result: GroupedItem[] = [];
-    const seen = new Set<number>();
-
-    workout.exercises.forEach((exercise, i) => {
-      if (seen.has(i)) return;
-      seen.add(i);
-
-      const { supersetGroupId } = exercise;
-      if (supersetGroupId) {
-        const partnerIdx = workout.exercises.findIndex(
-          (e, j) => j !== i && e.supersetGroupId === supersetGroupId,
-        );
-        const partner =
-          partnerIdx !== -1 ? workout.exercises[partnerIdx] : null;
-        if (partner && !seen.has(partnerIdx)) {
-          seen.add(partnerIdx);
-          result.push({
-            type: "superset",
-            exercises: [exercise, partner],
-            exerciseIndices: [i, partnerIdx],
-          });
-          return;
-        }
-      }
-      result.push({ type: "single", exercise, exerciseIndex: i });
-    });
-
-    return result;
-  }, [workout]);
+  const groupedData = useMemo(
+    () => (workout ? groupExercisesBySuperset(workout.exercises) : []),
+    [workout],
+  );
 
   const itemLabels = useMemo(() => {
     let offset = 0;
@@ -511,7 +474,7 @@ export default function WorkoutOverviewScreen() {
   );
 
   const handleOrderChange = useCallback(
-    ({ data }: SortableGridDragEndParams<GroupedItem>) => {
+    ({ data }: SortableGridDragEndParams<GroupedExerciseItem>) => {
       setMenuVisible({});
       const newExercises = data.flatMap((item) =>
         item.type === "single" ? [item.exercise] : item.exercises,
@@ -521,7 +484,7 @@ export default function WorkoutOverviewScreen() {
     [reorderExercises],
   );
 
-  const renderItem: SortableGridRenderItem<GroupedItem> = useCallback(
+  const renderItem: SortableGridRenderItem<GroupedExerciseItem> = useCallback(
     ({ item, index }) => {
       const renderCard = (
         exercise: UserExercise,
@@ -590,6 +553,7 @@ export default function WorkoutOverviewScreen() {
           <Sortable.Touchable
             accessibilityRole="button"
             onTap={() => handleExercisePress(exerciseIndex)}
+            testID={`workout-exercise-${exerciseIndex}`}
             style={styles.cardTouchable}
           >
             <AppIcon
@@ -709,6 +673,7 @@ export default function WorkoutOverviewScreen() {
                 anchor={
                   <AppIconButton
                     accessibilityLabel={t`Options for ${exercise.name}`}
+                    testID={`workout-exercise-menu-${exerciseIndex}`}
                     icon="dots-vertical"
                     size={24}
                     onPress={() => handleMenuOpen(exerciseIndex)}
@@ -723,6 +688,7 @@ export default function WorkoutOverviewScreen() {
                     handleDeleteExercise(exerciseIndex);
                   }}
                   title={t`Delete`}
+                  testID="exercise-menu-delete"
                 />
                 <Menu.Item
                   onPress={() => {
@@ -730,16 +696,19 @@ export default function WorkoutOverviewScreen() {
                     handleReplaceExercise(exerciseIndex);
                   }}
                   title={t`Replace`}
+                  testID="exercise-menu-replace"
                 />
                 {exercise.supersetGroupId ? (
                   <Menu.Item
                     onPress={() => handleRemoveSuperset(exerciseIndex)}
                     title={t`Remove Superset`}
+                    testID="exercise-menu-remove-superset"
                   />
                 ) : (
                   <Menu.Item
                     onPress={() => handleCreateSuperset(exerciseIndex)}
                     title={t`Create Superset`}
+                    testID="exercise-menu-create-superset"
                   />
                 )}
               </Menu>
@@ -1106,6 +1075,7 @@ export default function WorkoutOverviewScreen() {
                 style={{ marginRight: 0 }}
                 labelStyle={styles.buttonLabel}
                 disabled={!hasCompletedSets || isSaving}
+                testID="workout-finish"
                 onPressIn={handleFinishPress}
               >
                 <Trans>Finish</Trans>
@@ -1116,6 +1086,7 @@ export default function WorkoutOverviewScreen() {
                 anchor={
                   <AppIconButton
                     accessibilityLabel={t`Workout options`}
+                    testID="workout-options"
                     icon="dots-vertical"
                     size={24}
                     onPressIn={() => handleMenuOpen(69420)}
@@ -1136,6 +1107,7 @@ export default function WorkoutOverviewScreen() {
                       ? t`Show one set at a time`
                       : t`Show sets as a list`
                   }
+                  testID="workout-options-logging-style"
                 />
                 <Menu.Item
                   onPress={() => {
@@ -1143,6 +1115,7 @@ export default function WorkoutOverviewScreen() {
                     handleRestartWorkout();
                   }}
                   title={t`Restart`}
+                  testID="workout-options-restart"
                 />
                 <Menu.Item
                   onPress={() => {
@@ -1150,6 +1123,7 @@ export default function WorkoutOverviewScreen() {
                     handleCancelWorkout();
                   }}
                   title={t`Discard workout`}
+                  testID="workout-options-discard"
                 />
               </Menu>
             </View>
@@ -1173,6 +1147,7 @@ export default function WorkoutOverviewScreen() {
           </ThemedText>
           <TextInput
             accessibilityLabel={t`Workout name`}
+            testID="save-workout-name"
             style={styles.saveModalInput}
             placeholder={t`Workout name`}
             placeholderTextColor={colors.contentSecondary}
@@ -1181,12 +1156,17 @@ export default function WorkoutOverviewScreen() {
             autoFocus
           />
           <View style={styles.saveModalButtons}>
-            <Button mode="outlined" onPress={handleExitSaveModal}>
+            <Button
+              mode="outlined"
+              testID="save-workout-not-now"
+              onPress={handleExitSaveModal}
+            >
               <Trans>Not now</Trans>
             </Button>
             <Button
               mode="contained"
               theme={{ colors: { primary: colors.accent } }}
+              testID="save-workout-save"
               onPress={async () => {
                 // The fallback is stored in English and translated on display.
                 const name = saveWorkoutName.trim() || QUICK_WORKOUT_NAME;
@@ -1286,6 +1266,7 @@ export default function WorkoutOverviewScreen() {
         <Button
           mode="outlined"
           icon="plus"
+          testID="workout-add-exercise"
           onPress={() =>
             router.push({
               pathname: "/(app)/(workout)/exercises",

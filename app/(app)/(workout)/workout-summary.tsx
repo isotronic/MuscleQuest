@@ -26,11 +26,7 @@ import {
   useWorkoutSessionHistoryQuery,
   type CompletedWorkout,
 } from "@/hooks/useCompletedWorkoutsQuery";
-import {
-  isLocalDateInRange,
-  localDateKeyToDate,
-  toLocalDateKey,
-} from "@/utils/dates";
+import { localDateKeyToDate, toLocalDateKey } from "@/utils/dates";
 import { useAppTheme, radii } from "@/theme";
 import { loggedInstanceName } from "@/utils/exerciseInstance";
 import type { AppThemeColors } from "@/theme/types";
@@ -44,13 +40,18 @@ import { formatDecimal, formatNumber } from "@/utils/numberFormat";
 import { useWorkoutPRsQuery } from "@/hooks/useWorkoutSummariesQuery";
 import { describePR } from "@/components/stats/widgets/RecentPRsWidget";
 import type { RecentPR } from "@/utils/db/workoutStats";
-import { reachedGoalWithWorkout } from "@/utils/weeklyGoal";
-import { endOfAppWeek, startOfAppWeek } from "@/utils/week";
+import {
+  reachedGoalWithWorkout,
+  trainingDaysThisWeek,
+} from "@/utils/weeklyGoal";
 import { useWeekRule } from "@/hooks/useWeekRule";
 import FeedbackCatchUpCard from "@/components/FeedbackCatchUpCard";
 import ProgressionOfferCard from "@/components/ProgressionOfferCard";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
-import { mergePrompts } from "@/utils/feedbackPrompts";
+import {
+  mergePrompts,
+  savedCatchUpPrompts as keepSavedPrompts,
+} from "@/utils/feedbackPrompts";
 import {
   completedWorkoutVolume,
   volumeOptionsFromSettings,
@@ -441,16 +442,10 @@ export default function WorkoutSummaryScreen() {
     resumed !== "true" &&
     (prs.length > 0 || weeklyGoalJustReached);
 
-  const workoutsThisWeek = useMemo(() => {
-    if (!allWorkouts) return 0;
-    const today = new Date();
-    const weekStart = startOfAppWeek(today, weekRule);
-    const weekEnd = endOfAppWeek(today, weekRule);
-    const thisWeek = allWorkouts.filter((w) =>
-      isLocalDateInRange(w.local_date, weekStart, weekEnd),
-    );
-    return new Set(thisWeek.map((w) => w.local_date)).size;
-  }, [allWorkouts, weekRule]);
+  const workoutsThisWeek = useMemo(
+    () => (allWorkouts ? trainingDaysThisWeek(allWorkouts, weekRule) : 0),
+    [allWorkouts, weekRule],
+  );
 
   const prevWorkout = useMemo(() => {
     if (!history || !workout) return null;
@@ -470,25 +465,9 @@ export default function WorkoutSummaryScreen() {
     [prevWorkout, volumeOptions, weightUnit],
   );
 
-  // Only blocks that were saved with this workout: by plan row, so a skipped
-  // block of an exercise logged twice gets no prompt; by exercise for
-  // anything saved without a row.
   const savedCatchUpPrompts = useMemo(() => {
     if (!workout || !progressionSettings.enabled) return [];
-    const savedRows = new Set<number>();
-    const savedWithoutRow = new Set<number>();
-    for (const e of workout.exercises) {
-      if (e.user_workout_exercise_id != null) {
-        savedRows.add(e.user_workout_exercise_id);
-      } else {
-        savedWithoutRow.add(e.exercise_id);
-      }
-    }
-    return catchUpPrompts.filter((p) =>
-      p.userWorkoutExerciseId != null && savedRows.has(p.userWorkoutExerciseId)
-        ? true
-        : savedWithoutRow.has(p.exerciseContext.exerciseId),
-    );
+    return keepSavedPrompts(catchUpPrompts, workout.exercises);
   }, [catchUpPrompts, workout, progressionSettings.enabled]);
 
   const countSets = (w: CompletedWorkout) =>
@@ -705,6 +684,7 @@ export default function WorkoutSummaryScreen() {
 
         <Button
           mode="contained"
+          testID="summary-done"
           onPress={() => router.replace("/(app)/(tabs)")}
           style={styles.doneButton}
           labelStyle={styles.doneButtonLabel}

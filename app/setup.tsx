@@ -362,6 +362,7 @@ export default function SetupScreen() {
         )}
         <Button
           mode="contained"
+          testID="setup-next"
           onPress={next}
           loading={isPending || seeding.waiting}
           disabled={isPending || seeding.waiting}

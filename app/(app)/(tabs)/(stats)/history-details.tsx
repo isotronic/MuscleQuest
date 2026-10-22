@@ -243,6 +243,7 @@ export default function HistoryDetailsScreen() {
             <View style={styles.headerRight}>
               <AppIconButton
                 accessibilityLabel={t`Edit workout`}
+                testID="history-edit"
                 icon="file-document-edit-outline"
                 size={25}
                 style={{ marginRight: 0 }}
@@ -260,6 +261,7 @@ export default function HistoryDetailsScreen() {
                 style={{ marginRight: 0 }}
                 iconColor={colors.danger}
                 accessibilityLabel={t`Delete workout`}
+                testID="history-delete"
                 accessibilityHint={t`Deletes this workout from your history`}
                 disabled={deleteMutation.isPending}
                 // No confirmation: the delete is soft and the snackbar offers
@@ -359,6 +361,7 @@ export default function HistoryDetailsScreen() {
                 <TouchableOpacity
                   accessibilityRole="button"
                   accessibilityHint={t`Opens this exercise`}
+                  testID="history-exercise"
                   style={styles.exerciseHeader}
                   activeOpacity={0.7}
                   onPress={() =>

@@ -1,0 +1,40 @@
+# Fresh install to the get-started screen: welcome, setup with its defaults,
+# skip sign-in.
+appId: com.isotronic.musclequest
+---
+- launchApp:
+    clearState: true
+    # The rest timer asks for notifications after the first set; granting it
+    # up front keeps the system dialog out of the flows.
+    permissions:
+      all: deny
+      notifications: allow
+- extendedWaitUntil:
+    visible:
+      id: "welcome-get-started"
+    timeout: 60000
+- tapOn:
+    id: "welcome-get-started"
+- extendedWaitUntil:
+    visible:
+      id: "setup-next"
+    timeout: 15000
+# One tap per setup step; the last one saves and waits for seeding.
+- repeat:
+    times: 8
+    while:
+      notVisible:
+        id: "login-skip"
+    commands:
+      - tapOn:
+          id: "setup-next"
+- extendedWaitUntil:
+    visible:
+      id: "login-skip"
+    timeout: 60000
+- tapOn:
+    id: "login-skip"
+- extendedWaitUntil:
+    visible:
+      id: "get-started-skip"
+    timeout: 15000

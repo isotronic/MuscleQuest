@@ -1,0 +1,14 @@
+# On the workout summary: back to home.
+appId: com.isotronic.musclequest
+---
+# Done sits at the bottom of the summary.
+- scrollUntilVisible:
+    element:
+      id: "summary-done"
+    timeout: 30000
+- tapOn:
+    id: "summary-done"
+- extendedWaitUntil:
+    visible:
+      id: "tab-home"
+    timeout: 15000

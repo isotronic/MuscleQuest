@@ -1,0 +1,100 @@
+# From home: build a plan, schedule its workout on every day, activate it,
+# see it as today's workout, duplicate it, then delete the copy.
+appId: com.isotronic.musclequest
+---
+- runFlow: create-plan.yml
+- tapOn: "E2E Plan"
+- extendedWaitUntil:
+    visible:
+      id: "plan-edit"
+    timeout: 15000
+- tapOn:
+    id: "plan-edit"
+- runFlow:
+    file: schedule-day.yml
+    env:
+      DAY: "0"
+- runFlow:
+    file: schedule-day.yml
+    env:
+      DAY: "1"
+- runFlow:
+    file: schedule-day.yml
+    env:
+      DAY: "2"
+- runFlow:
+    file: schedule-day.yml
+    env:
+      DAY: "3"
+- runFlow:
+    file: schedule-day.yml
+    env:
+      DAY: "4"
+- runFlow:
+    file: schedule-day.yml
+    env:
+      DAY: "5"
+- runFlow:
+    file: schedule-day.yml
+    env:
+      DAY: "6"
+- tapOn:
+    id: "plan-save"
+- runFlow:
+    when:
+      notVisible:
+        id: "plan-activate"
+    commands:
+      - tapOn:
+          id: "tab-plans"
+      - scrollUntilVisible:
+          element: "E2E Plan"
+      - tapOn: "E2E Plan"
+- tapOn:
+    id: "plan-activate"
+- tapOn:
+    id: "tab-home"
+# A workout is already done today, so home names Day A as the next one.
+- scrollUntilVisible:
+    element: ".*Day A.*"
+    timeout: 15000
+- runFlow: open-plans-tab.yml
+- scrollUntilVisible:
+    element: "E2E Plan"
+- tapOn: "E2E Plan"
+- scrollUntilVisible:
+    element:
+      id: "plan-duplicate"
+    timeout: 15000
+- tapOn:
+    id: "plan-duplicate"
+- tapOn:
+    id: "android:id/button1"
+# The copy opens in the plan editor, already named, and is kept on save.
+- extendedWaitUntil:
+    visible:
+      id: "plan-name-input"
+      text: "E2E Plan \\(Copy\\)"
+    timeout: 15000
+- tapOn:
+    id: "plan-save"
+- extendedWaitUntil:
+    visible:
+      id: "tab-plans"
+    timeout: 15000
+- runFlow: open-plans-tab.yml
+- scrollUntilVisible:
+    element: "E2E Plan \\(Copy\\)"
+    timeout: 15000
+# The newest plan comes first in the sideways list, so delete the copy.
+- tapOn: "E2E Plan \\(Copy\\)"
+- tapOn:
+    id: "plan-delete"
+- tapOn:
+    id: "android:id/button1"
+- extendedWaitUntil:
+    notVisible: "E2E Plan \\(Copy\\)"
+    timeout: 15000
+- runFlow: wait-for-snackbar.yml
+- tapOn:
+    id: "tab-home"

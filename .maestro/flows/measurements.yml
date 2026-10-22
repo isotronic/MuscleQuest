@@ -1,0 +1,69 @@
+# From home: log body weight and waist on the measurements screen, edit the
+# entry, then delete it.
+appId: com.isotronic.musclequest
+---
+- tapOn:
+    id: "tab-stats"
+- scrollUntilVisible:
+    element:
+      id: "measurements-view-all"
+    timeout: 20000
+- tapOn:
+    id: "measurements-view-all"
+- extendedWaitUntil:
+    visible:
+      id: "measurement-entry-weight"
+    timeout: 15000
+- tapOn:
+    id: "measurement-entry-weight"
+- inputText: "170"
+- hideKeyboard
+- tapOn:
+    id: "measurement-entry-waist"
+- inputText: "32"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "measurement-entry-log"
+- tapOn:
+    id: "measurement-entry-log"
+- scrollUntilVisible:
+    element:
+      id: "measurement-session"
+    timeout: 15000
+- tapOn:
+    id: "measurement-session"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "measurement-edit-weight"
+    timeout: 15000
+- tapOn:
+    id: "measurement-edit-weight"
+    point: "90%, 50%"
+- eraseText
+- inputText: "175"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "measurement-edit-save"
+- tapOn:
+    id: "measurement-edit-save"
+- scrollUntilVisible:
+    element: ".*(^|\\D)175(\\D|$).*"
+    timeout: 15000
+- tapOn:
+    id: "measurement-session"
+    index: 0
+- scrollUntilVisible:
+    element:
+      id: "measurement-edit-delete"
+- tapOn:
+    id: "measurement-edit-delete"
+# Delete offers Undo instead of asking.
+- runFlow: wait-for-snackbar.yml
+- assertNotVisible:
+    id: "measurement-session"
+- back
+- tapOn:
+    id: "tab-home"

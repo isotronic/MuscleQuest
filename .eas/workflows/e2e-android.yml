@@ -1,0 +1,86 @@
+# Maestro flows on an Android emulator: a new e2e-test build, then the
+# chosen suite. Manual only (npm run test:e2e, or test:e2e:full), from a local
+# checkout, so the upload includes the gitignored google-services.json,
+# assets/db/ and assets/data/ (a GitHub-triggered run would not have them).
+#
+# The test job is a custom job rather than the pre-packaged `maestro` type,
+# which needs a paid EAS plan. To rerun only the flows on an existing build,
+# use e2e-android-test.yml; keep the maestro steps of both files in sync.
+name: E2E Android
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        type: choice
+        options: [smoke, full]
+        default: smoke
+        description: smoke for routine runs, full before a release
+
+jobs:
+  build:
+    type: build
+    params:
+      platform: android
+      profile: e2e-test
+
+  maestro:
+    needs: [build]
+    # Android emulators need a nested-virtualization worker.
+    runs_on: linux-medium-nested-virtualization
+    steps:
+      - uses: eas/checkout
+      - uses: eas/download_build
+        id: download_build
+        with:
+          build_id: ${{ needs.build.outputs.build_id }}
+          extensions: [apk]
+      - uses: eas/install_maestro
+      - uses: eas/start_android_emulator
+        with:
+          system_image_package: system-images;android-34;default;x86_64
+      - name: Install the app
+        run: |
+          adb install "${{ steps.download_build.outputs.artifact_path }}"
+          # Android's one-time "Viewing full screen" hint covers the app the
+          # first time it hides the system bars.
+          adb shell settings put secure immersive_mode_confirmations confirmed
+      - name: Run the ${{ inputs.suite }} suite
+        run: maestro test .maestro/${{ inputs.suite }}.yml --debug-output maestro-debug
+      # The full suite ends with the quick workout on a German device. A
+      # locale change needs root, which the default emulator image allows.
+      - name: Switch the emulator to German
+        if: ${{ success() && inputs.suite == 'full' }}
+        run: |
+          # Every wait is bounded, so an emulator that never comes back fails
+          # the step instead of holding the job until EAS times it out.
+          adb root
+          # adbd restarts as root and drops offline for a moment; a setprop
+          # sent before it is back as root is silently lost.
+          end=$((SECONDS + 60))
+          until [ "$(adb shell whoami 2>/dev/null | tr -d '\r')" = "root" ]; do
+            [ "$SECONDS" -lt "$end" ] || { echo "adbd did not come back as root"; exit 1; }
+            sleep 1
+          done
+          adb shell "setprop persist.sys.locale de-DE; setprop ctl.restart zygote"
+          timeout 120 adb wait-for-device || { echo "Emulator offline after the restart"; exit 1; }
+          # sys.boot_completed can still read 1 from before the restart, so
+          # also wait for the new locale and a package manager that answers.
+          end=$((SECONDS + 240))
+          until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ] \
+            && [ "$(adb shell getprop persist.sys.locale | tr -d '\r')" = "de-DE" ] \
+            && adb shell pm path android > /dev/null 2>&1; do
+            [ "$SECONDS" -lt "$end" ] || { echo "Emulator did not finish restarting in German"; exit 1; }
+            sleep 2
+          done
+      - name: Run the German suite
+        if: ${{ success() && inputs.suite == 'full' }}
+        run: maestro test .maestro/german.yml --debug-output maestro-debug
+      # Screenshots and the view hierarchy of a failed step.
+      - uses: eas/upload_artifact
+        if: ${{ failure() }}
+        with:
+          type: other
+          name: maestro-debug
+          # Maestro writes into a hidden .maestro folder, which a glob skips.
+          path: maestro-debug

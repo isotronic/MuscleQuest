@@ -166,6 +166,7 @@ export default function WorkoutSettingsScreen() {
       />
       <SettingRow
         id="plates"
+        testID="setting-plates"
         icon="weight-lifter"
         title={<Trans>Plates</Trans>}
         value={<Trans>Plates you own, used by the plate calculator</Trans>}

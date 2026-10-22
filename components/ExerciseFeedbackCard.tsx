@@ -115,6 +115,7 @@ export default function ExerciseFeedbackCard({
   ) => (
     <TouchableOpacity
       key={key}
+      testID={`feedback-${key}`}
       onPress={onPress}
       activeOpacity={0.7}
       accessibilityRole={selected === undefined ? "button" : "radio"}

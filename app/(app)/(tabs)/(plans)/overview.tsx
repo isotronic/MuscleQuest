@@ -105,6 +105,7 @@ function PlanWorkoutCard({
         </TouchableOpacity>
         <AppIconButton
           accessibilityLabel={t`Copy ${spokenName} to Your workouts`}
+          testID={`plan-workout-copy-${index}`}
           icon="content-copy"
           size={20}
           iconColor={colors.contentSecondary}
@@ -324,6 +325,7 @@ export default function PlanOverviewScreen() {
                 />
                 <AppIconButton
                   accessibilityLabel={t`Delete plan`}
+                  testID="plan-delete"
                   accessibilityHint={t`Deletes this plan. Your workout history is kept.`}
                   icon="trash-can-outline"
                   size={25}
@@ -386,6 +388,7 @@ export default function PlanOverviewScreen() {
 
         {isActive && progressionSettings.enabled && (
           <TouchableOpacity
+            testID="plan-deload-toggle"
             onPress={handleToggleDeload}
             style={[styles.deloadRow]}
             activeOpacity={0.7}
@@ -499,7 +502,12 @@ export default function PlanOverviewScreen() {
             {duplicatePlanMutation.isPending ? (
               <ActivityIndicator size="small" color={colors.accent} />
             ) : (
-              <Button mode="outlined" compact onPress={handleDuplicatePlan}>
+              <Button
+                mode="outlined"
+                compact
+                testID="plan-duplicate"
+                onPress={handleDuplicatePlan}
+              >
                 <Trans>Duplicate</Trans>
               </Button>
             )}
@@ -531,6 +539,7 @@ export default function PlanOverviewScreen() {
               setIsEditing(false);
             }
           }}
+          testID="plan-edit"
           style={styles.paperButton}
           labelStyle={styles.buttonLabel}
           disabled={isEditing}

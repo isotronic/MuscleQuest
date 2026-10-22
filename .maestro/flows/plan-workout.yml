@@ -1,0 +1,49 @@
+# From home with an active plan: start today's workout, log two sets with the
+# rest timer in between, finish, and see the week's goal move.
+appId: com.isotronic.musclequest
+---
+- scrollUntilVisible:
+    element:
+      id: "today-start"
+    timeout: 15000
+- tapOn:
+    id: "today-start"
+- extendedWaitUntil:
+    visible:
+      id: "workout-exercise-0"
+    timeout: 15000
+- tapOn:
+    id: "workout-exercise-0"
+- runFlow:
+    file: log-set.yml
+    env:
+      WEIGHT: "40"
+      REPS: "10"
+# The rest timer starts after a completed set: add time, then skip it.
+- extendedWaitUntil:
+    visible:
+      id: "rest-countdown"
+    timeout: 15000
+- tapOn:
+    id: "rest-add"
+- tapOn:
+    id: "rest-skip"
+- extendedWaitUntil:
+    notVisible:
+      id: "rest-countdown"
+    timeout: 5000
+- runFlow:
+    file: log-set.yml
+    env:
+      WEIGHT: "40"
+      REPS: "10"
+# Two of several sets are done, so rest starts again.
+- extendedWaitUntil:
+    visible:
+      id: "rest-skip"
+    timeout: 15000
+- tapOn:
+    id: "rest-skip"
+- back
+- runFlow: finish-workout.yml
+- runFlow: close-summary.yml

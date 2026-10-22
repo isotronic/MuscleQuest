@@ -41,7 +41,11 @@ const renderWidget = (widget: StatsWidget) => {
   const { Component } = WIDGETS[widget.id] as {
     Component: React.ComponentType<{ config: StatsWidget["config"] }>;
   };
-  return <Component key={widget.id} config={widget.config} />;
+  return (
+    <View key={widget.id} testID={`widget-${widget.id}`} collapsable={false}>
+      <Component config={widget.config} />
+    </View>
+  );
 };
 
 export default function StatsScreen() {
@@ -247,6 +251,7 @@ export default function StatsScreen() {
     () => (
       <AppIconButton
         accessibilityLabel={t`Customize stats`}
+        testID="stats-customize"
         icon="pencil-outline"
         size={22}
         iconColor={colors.contentPrimary}

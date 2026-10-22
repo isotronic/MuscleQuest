@@ -1,0 +1,17 @@
+# Open the plans tab at its list: the tab keeps the last screen opened in it,
+# and tapping the active tab again goes back to the list.
+appId: com.isotronic.musclequest
+---
+- tapOn:
+    id: "tab-plans"
+- runFlow:
+    when:
+      notVisible:
+        id: "plans-new-plan"
+    commands:
+      - tapOn:
+          id: "tab-plans"
+- extendedWaitUntil:
+    visible:
+      id: "plans-new-plan"
+    timeout: 15000

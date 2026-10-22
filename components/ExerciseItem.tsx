@@ -59,6 +59,7 @@ const ExerciseItem = ({
       <TouchableOpacity
         onPress={() => onPress(item)}
         style={styles.exerciseRow}
+        testID="exercise-row"
         accessibilityRole="button"
         accessibilityLabel={`${item.name}, ${bodyPartLabel}, ${equipmentLabel}`}
       >
@@ -79,6 +80,7 @@ const ExerciseItem = ({
         <Checkbox
           status={selected ? "checked" : "unchecked"}
           uncheckedColor={colors.contentSecondary}
+          testID="exercise-select"
           onPress={() => onSelect(item.exercise_id)}
           {...checkboxLabel(t`Select ${item.name}`)}
         />

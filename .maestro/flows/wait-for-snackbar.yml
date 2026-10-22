@@ -1,0 +1,8 @@
+# Wait until a snackbar has gone: it sits over the tab bar and takes taps
+# meant for it.
+appId: com.isotronic.musclequest
+---
+- extendedWaitUntil:
+    notVisible:
+      id: "app-snackbar"
+    timeout: 15000

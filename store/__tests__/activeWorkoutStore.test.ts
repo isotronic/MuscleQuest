@@ -2717,4 +2717,27 @@ describe("useActiveWorkoutStore", () => {
       expect(currentExerciseIndex).toBe(0);
     });
   });
+
+  it("replaceExercise keeps the replaced exercise's superset group", () => {
+    const exercise = (id: number, supersetGroupId?: string) => ({
+      exercise_id: id,
+      name: `Exercise ${id}`,
+      tracking_type: "weight",
+      supersetGroupId,
+      sets: [workingSet(), workingSet()],
+    });
+    act(() => {
+      useActiveWorkoutStore.setState({
+        workout: {
+          name: "Superset Workout",
+          exercises: [exercise(1, "g"), exercise(2, "g")],
+        } as any,
+      });
+      useActiveWorkoutStore.getState().replaceExercise(1, exercise(3) as any);
+    });
+
+    const { exercises } = useActiveWorkoutStore.getState().workout!;
+    expect(exercises[1].exercise_id).toBe(3);
+    expect(exercises[1].supersetGroupId).toBe("g");
+  });
 });
