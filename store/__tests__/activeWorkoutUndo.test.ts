@@ -52,7 +52,9 @@ describe("undo removing an exercise", () => {
     act(() => store.deleteExercise(1));
     expect(useActiveWorkoutStore.getState().workout!.exercises).toHaveLength(2);
 
-    act(() => useActiveWorkoutStore.getState().restoreExercise(snapshot));
+    act(() => {
+      useActiveWorkoutStore.getState().restoreExercise(snapshot);
+    });
 
     const after = useActiveWorkoutStore.getState();
     expect(after.workout!.exercises.map((e) => e.exercise_id)).toEqual([
@@ -67,13 +69,17 @@ describe("undo removing an exercise", () => {
 
   it("keeps changes made to other exercises in the meantime", () => {
     const snapshot = useActiveWorkoutStore.getState().snapshotExercise(0)!;
-    act(() => useActiveWorkoutStore.getState().deleteExercise(0));
+    act(() => {
+      useActiveWorkoutStore.getState().deleteExercise(0);
+    });
     // Exercise 3 (now at index 1) gets a value while the snackbar is up.
-    act(() =>
-      useActiveWorkoutStore.getState().updateWeightAndReps(1, 1, "22.5", "10"),
-    );
+    act(() => {
+      useActiveWorkoutStore.getState().updateWeightAndReps(1, 1, "22.5", "10");
+    });
 
-    act(() => useActiveWorkoutStore.getState().restoreExercise(snapshot));
+    act(() => {
+      useActiveWorkoutStore.getState().restoreExercise(snapshot);
+    });
 
     const after = useActiveWorkoutStore.getState();
     expect(after.workout!.exercises.map((e) => e.exercise_id)).toEqual([
@@ -96,12 +102,16 @@ describe("undo removing a set", () => {
     const before = useActiveWorkoutStore.getState();
     const snapshot = before.snapshotSet(1, 0)!;
 
-    act(() => useActiveWorkoutStore.getState().removeSet(0));
+    act(() => {
+      useActiveWorkoutStore.getState().removeSet(0);
+    });
     expect(
       useActiveWorkoutStore.getState().workout!.exercises[1].sets,
     ).toHaveLength(1);
 
-    act(() => useActiveWorkoutStore.getState().restoreSet(snapshot));
+    act(() => {
+      useActiveWorkoutStore.getState().restoreSet(snapshot);
+    });
 
     const after = useActiveWorkoutStore.getState();
     expect(after.workout!.exercises[1].sets).toEqual(
@@ -119,19 +129,29 @@ describe("undo removing a set", () => {
     });
     const snapshot = useActiveWorkoutStore.getState().snapshotSet(1, 0)!;
 
-    act(() => useActiveWorkoutStore.getState().removeSet(0));
-    act(() => useActiveWorkoutStore.getState().restoreSet(snapshot));
+    act(() => {
+      useActiveWorkoutStore.getState().removeSet(0);
+    });
+    act(() => {
+      useActiveWorkoutStore.getState().restoreSet(snapshot);
+    });
 
     expect(useActiveWorkoutStore.getState().currentSetIndices[1]).toBe(0);
   });
 
   it("does nothing if the exercise is no longer where it was", () => {
     const snapshot = useActiveWorkoutStore.getState().snapshotSet(1, 0)!;
-    act(() => useActiveWorkoutStore.getState().removeSet(0));
-    act(() => useActiveWorkoutStore.getState().deleteExercise(1));
+    act(() => {
+      useActiveWorkoutStore.getState().removeSet(0);
+    });
+    act(() => {
+      useActiveWorkoutStore.getState().deleteExercise(1);
+    });
     const before = useActiveWorkoutStore.getState().workout;
 
-    act(() => useActiveWorkoutStore.getState().restoreSet(snapshot));
+    act(() => {
+      useActiveWorkoutStore.getState().restoreSet(snapshot);
+    });
 
     expect(useActiveWorkoutStore.getState().workout).toBe(before);
   });

@@ -90,7 +90,9 @@ describe("nextSet after a finished superset", () => {
 
   it("moves to the next unfinished exercise after the superset", () => {
     seed([A, B, C]);
-    act(() => useActiveWorkoutStore.getState().nextSet());
+    act(() => {
+      useActiveWorkoutStore.getState().nextSet();
+    });
 
     const s = useActiveWorkoutStore.getState();
     expect(s.currentExerciseIndex).toBe(2);
@@ -101,7 +103,9 @@ describe("nextSet after a finished superset", () => {
 
   it("starts the next exercise at its first unfinished set", () => {
     seed([A, B, C], { 2: { 0: true } });
-    act(() => useActiveWorkoutStore.getState().nextSet());
+    act(() => {
+      useActiveWorkoutStore.getState().nextSet();
+    });
 
     const s = useActiveWorkoutStore.getState();
     expect(s.currentExerciseIndex).toBe(2);
@@ -110,7 +114,9 @@ describe("nextSet after a finished superset", () => {
 
   it("skips an exercise after the superset that is already finished", () => {
     seed([A, B, C, D], { 2: { 0: true, 1: true } });
-    act(() => useActiveWorkoutStore.getState().nextSet());
+    act(() => {
+      useActiveWorkoutStore.getState().nextSet();
+    });
 
     const s = useActiveWorkoutStore.getState();
     expect(s.currentExerciseIndex).toBe(3);
@@ -120,7 +126,9 @@ describe("nextSet after a finished superset", () => {
 
   it("leaves the session when nothing after the superset is unfinished", () => {
     seed([A, B, C], { 2: { 0: true, 1: true } });
-    act(() => useActiveWorkoutStore.getState().nextSet());
+    act(() => {
+      useActiveWorkoutStore.getState().nextSet();
+    });
 
     const s = useActiveWorkoutStore.getState();
     expect(router.back).toHaveBeenCalledTimes(1);
@@ -143,7 +151,9 @@ describe("nextSet after a finished superset", () => {
         },
       },
     );
-    act(() => useActiveWorkoutStore.getState().nextSet());
+    act(() => {
+      useActiveWorkoutStore.getState().nextSet();
+    });
 
     const s = useActiveWorkoutStore.getState();
     expect(s.currentExerciseIndex).toBe(0);
@@ -163,7 +173,9 @@ describe("nextSet after a finished superset", () => {
       completedSets: { 1: { 0: true, 1: true }, 2: { 0: true } },
       weightAndReps: {},
     });
-    act(() => useActiveWorkoutStore.getState().nextSet());
+    act(() => {
+      useActiveWorkoutStore.getState().nextSet();
+    });
     const supersetBackCalls = (router.back as jest.Mock).mock.calls.length;
     const supersetIndex = useActiveWorkoutStore.getState().currentExerciseIndex;
 
@@ -176,7 +188,9 @@ describe("nextSet after a finished superset", () => {
       completedSets: { 1: { 0: true } },
       weightAndReps: {},
     });
-    act(() => useActiveWorkoutStore.getState().nextSet());
+    act(() => {
+      useActiveWorkoutStore.getState().nextSet();
+    });
     const singleBackCalls = (router.back as jest.Mock).mock.calls.length;
     const singleIndex = useActiveWorkoutStore.getState().currentExerciseIndex;
 
