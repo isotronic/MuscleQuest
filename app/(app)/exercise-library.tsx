@@ -93,6 +93,7 @@ export default function ExerciseLibraryScreen() {
       <View style={styles.searchContainer}>
         <TextInput
           accessibilityLabel={t`Search exercises`}
+          testID="exercise-search"
           style={styles.searchInput}
           placeholderTextColor={colors.contentPrimary}
           placeholder={t`Search`}
@@ -120,6 +121,7 @@ export default function ExerciseLibraryScreen() {
         selectedExercises={[]}
         onSelect={() => {}}
         scrollKey={`${debouncedQuery}-${sortMode}`}
+        bottomInset
         onPressItem={(item) => {
           if (isSelectMode) {
             setPickedExercise(item);

@@ -27,6 +27,7 @@ import {
   useCreateStandaloneWorkout,
   useUpdateStandaloneWorkout,
 } from "@/hooks/useCreateStandaloneWorkout";
+import { useBottomScrollPadding } from "@/hooks/useBottomScrollPadding";
 import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
 
 export default function CreateWorkoutScreen() {
@@ -39,6 +40,7 @@ export default function CreateWorkoutScreen() {
   const existingWorkoutId = workoutIdParam ? Number(workoutIdParam) : null;
 
   const [isSaving, setIsSaving] = useState(false);
+  const bottomPadding = useBottomScrollPadding(50);
   const savedRef = useRef(false);
   const initializedWorkoutId = useRef<number | null | undefined>(undefined);
 
@@ -259,7 +261,9 @@ export default function CreateWorkoutScreen() {
           ),
         }}
       />
-      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 50 }}>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: bottomPadding }}
+      >
         <ThemedView style={styles.container}>
           {workout ? (
             <WorkoutCard

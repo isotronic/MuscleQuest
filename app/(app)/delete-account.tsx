@@ -27,6 +27,7 @@ import {
 import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
 import { radii, useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { useBottomScrollPadding } from "@/hooks/useBottomScrollPadding";
 
 // Typed to enable the final button. Kept in English in every language so the
 // instruction and the check always agree.
@@ -47,6 +48,7 @@ type Phase = "confirm" | "deleting" | "failed" | "localChoice" | "done";
 export default function DeleteAccountScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const bottomPadding = useBottomScrollPadding(32);
   const { _ } = useLingui();
   const user = useContext(AuthContext);
   // The auth user disappears partway through, so hold on to the uid.
@@ -326,7 +328,10 @@ export default function DeleteAccountScreen() {
         }}
       />
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[
+          styles.container,
+          { paddingBottom: bottomPadding },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         {phase === "confirm" && renderConfirm()}
@@ -346,7 +351,6 @@ function createStyles(colors: AppThemeColors) {
     },
     container: {
       padding: 16,
-      paddingBottom: 32,
     },
     heading: {
       fontSize: 18,

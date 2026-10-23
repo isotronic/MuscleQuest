@@ -1,0 +1,7 @@
+# Scroll the screen ${TIMES} times, enough to reach the end of its content.
+appId: com.isotronic.musclequest
+---
+- repeat:
+    times: ${TIMES}
+    commands:
+      - scroll

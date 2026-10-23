@@ -17,6 +17,7 @@ import { AppButton, AppIconButton } from "@/components/ui";
 import { DecimalInput } from "@/components/ui/DecimalInput";
 import { TimeInput } from "@/components/TimeInput";
 import { DatePickerModal } from "@/components/history/DatePickerModal";
+import { useBottomScrollPadding } from "@/hooks/useBottomScrollPadding";
 import type { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useExercisePickerStore } from "@/store/exercisePickerStore";
 import { toLocalDateKey } from "@/utils/dates";
@@ -49,6 +50,11 @@ interface WorkoutHistoryEditorProps {
   header?: React.ReactNode;
   /** Shows progress in place of the save button. */
   saving: boolean;
+  /**
+   * Screens without a tab bar: keep the end of the content clear of the
+   * system navigation bar.
+   */
+  bottomInset?: boolean;
 }
 
 const emptySet = (setId: number, setNumber: number): EditedSet => ({
@@ -81,9 +87,11 @@ export function WorkoutHistoryEditor({
   onChange,
   header,
   saving,
+  bottomInset = false,
 }: WorkoutHistoryEditorProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const insetPadding = useBottomScrollPadding(48);
   const { i18n } = useLingui();
 
   const [exercises, setExercises] = useState<EditedExercise[]>(
@@ -345,7 +353,10 @@ export function WorkoutHistoryEditor({
 
   return (
     <ScrollView
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[
+        styles.content,
+        bottomInset && { paddingBottom: insetPadding },
+      ]}
       keyboardShouldPersistTaps="handled"
     >
       <Stack.Screen

@@ -16,10 +16,12 @@ import { PlanImages, planImageSource } from "@/constants/PlanImages";
 import * as ImagePicker from "expo-image-picker";
 import { Button } from "react-native-paper";
 import Bugsnag from "@bugsnag/expo";
+import { useBottomScrollPadding } from "@/hooks/useBottomScrollPadding";
 
 export default function ImageSearchScreen() {
   const { setPlanImageUrl } = useWorkoutStore();
   const navigation = useNavigation();
+  const bottomPadding = useBottomScrollPadding(16);
 
   const handleImageSelect = (url: string) => {
     setPlanImageUrl(`${url}?utm_source=MuscleQuest&utm_medium=referral`);
@@ -71,10 +73,14 @@ export default function ImageSearchScreen() {
             </TouchableOpacity>
           </View>
         )}
-        contentContainerStyle={styles.grid}
+        contentContainerStyle={[styles.grid, { paddingBottom: bottomPadding }]}
         ListFooterComponent={
           <View style={styles.footer}>
-            <Button mode="contained" onPress={handlePickImage}>
+            <Button
+              mode="contained"
+              testID="image-search-device"
+              onPress={handlePickImage}
+            >
               <Trans>Choose from Device</Trans>
             </Button>
           </View>

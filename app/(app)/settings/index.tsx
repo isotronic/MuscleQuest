@@ -16,6 +16,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { AccountCard } from "@/components/settings/AccountCard";
 import { AuthContext } from "@/context/AuthProvider";
+import { useBottomScrollPadding } from "@/hooks/useBottomScrollPadding";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { SettingRow, useSettingStyles } from "@/components/settings/SettingRow";
 import { useAppTheme, radii } from "@/theme";
@@ -43,6 +44,7 @@ export default function SettingsScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const rowStyles = useSettingStyles();
+  const bottomPadding = useBottomScrollPadding(16);
   const { _, i18n } = useLingui();
   // "progression" opened this screen at that section before it had its own.
   const { section } = useLocalSearchParams<{ section?: string }>();
@@ -82,7 +84,10 @@ export default function SettingsScreen() {
   return (
     <ThemedView style={rowStyles.screen}>
       <ScrollView
-        contentContainerStyle={rowStyles.container}
+        contentContainerStyle={[
+          rowStyles.container,
+          { paddingBottom: bottomPadding },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         <AccountCard />

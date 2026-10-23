@@ -22,6 +22,7 @@ import {
 } from "@/utils/exerciseProgressFormat";
 import { useWeekRule } from "@/hooks/useWeekRule";
 import { weekStartsOnToday } from "@/utils/week";
+import { useBottomScrollPadding } from "@/hooks/useBottomScrollPadding";
 
 /**
  * Chart, PRs and recent sessions for one exercise. Reads its own settings
@@ -30,6 +31,8 @@ import { weekStartsOnToday } from "@/utils/week";
 export function ExerciseProgressTab({ exerciseId }: { exerciseId: number }) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const emptyBottomPadding = useBottomScrollPadding(60);
+  const bottomPadding = useBottomScrollPadding(50);
   const { data: settings } = useSettingsQuery();
   const weekStartsOn = weekStartsOnToday(useWeekRule());
   const weightUnit = settings?.weightUnit || "kg";
@@ -78,7 +81,12 @@ export function ExerciseProgressTab({ exerciseId }: { exerciseId: number }) {
       (set) => set.is_pr && !set.is_warmup,
     );
     return (
-      <ScrollView contentContainerStyle={styles.emptyState}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.emptyState,
+          { paddingBottom: emptyBottomPadding },
+        ]}
+      >
         <AppIcon
           set="mci"
           name="chart-line"
@@ -123,7 +131,7 @@ export function ExerciseProgressTab({ exerciseId }: { exerciseId: number }) {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
       showsVerticalScrollIndicator={false}
     >
       <TimeRangeSelector selected={timeRange} onChange={setTimeRange} />
@@ -266,7 +274,6 @@ function createStyles(colors: AppThemeColors) {
     content: {
       paddingHorizontal: 16,
       paddingTop: 8,
-      paddingBottom: 50,
     },
     divider: { marginBottom: 16 },
     pillRow: {
