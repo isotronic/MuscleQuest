@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { Button, Divider } from "react-native-paper";
 import { router } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useBottomScrollPadding } from "@/hooks/useBottomScrollPadding";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedView } from "@/components/ThemedView";
@@ -41,7 +41,7 @@ const formatWeight = (value: number) => formatNumber(value, 2);
 export default function PlateInventoryScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const insets = useSafeAreaInsets();
+  const bottomPadding = useBottomScrollPadding(32);
 
   const { data: settings } = useSettingsQuery();
   const { mutateAsync: updateSetting } = useUpdateSettingsMutation();
@@ -159,7 +159,7 @@ export default function PlateInventoryScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.container,
-          { paddingBottom: 32 + insets.bottom },
+          { paddingBottom: bottomPadding },
         ]}
       >
         <ThemedText style={styles.intro}>
