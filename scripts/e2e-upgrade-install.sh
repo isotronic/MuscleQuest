@@ -20,6 +20,22 @@ maestro="${MAESTRO:-$HOME/.maestro/bin/maestro}"
 app=com.isotronic.musclequest
 cd "$(dirname "$0")/.."
 
+# An APK with another app id (say a dev build) would install next to the app
+# instead of over it, and the second flow would test the old build.
+sdk="${ANDROID_HOME:-$HOME/Android/Sdk}"
+aapt2="$(ls -d "$sdk"/build-tools/*/aapt2 2>/dev/null | sort -V | tail -1)"
+if [ -z "$aapt2" ]; then
+  echo "aapt2 not found under $sdk/build-tools." >&2
+  exit 1
+fi
+for apk in "$old" "$new"; do
+  id="$("$aapt2" dump packagename "$apk")"
+  if [ "$id" != "$app" ]; then
+    echo "$apk is $id, not $app." >&2
+    exit 1
+  fi
+done
+
 # The app id is the store one: never uninstall it from a real phone, which
 # would wipe its training history.
 if [ "$(adb shell getprop ro.kernel.qemu 2>/dev/null | tr -d '\r')" != 1 ]; then
