@@ -15,6 +15,9 @@ jest.mock("@lingui/core/macro", () => ({
   t: (strings: TemplateStringsArray) => strings.join(""),
 }));
 jest.mock("../ExerciseItem", () => "ExerciseItem");
+jest.mock("react-native-safe-area-context", () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 48, left: 0, right: 0 }),
+}));
 
 const exercise = (id: number) =>
   ({ exercise_id: id, name: `Exercise ${id}` }) as Exercise;
@@ -175,5 +178,32 @@ describe("ExerciseList", () => {
 
     expect(getItemType(data[0])).toBe("title");
     expect(getItemType(data[1])).toBe("exercise");
+  });
+
+  it("adds the bottom inset to the end padding only when asked", () => {
+    const { rerender } = render(
+      <ExerciseList
+        exercises={exercises}
+        selectedExercises={noSelection}
+        onSelect={() => {}}
+        onPressItem={() => {}}
+      />,
+    );
+    expect(lastProps().contentContainerStyle).toMatchObject({
+      paddingBottom: 50,
+    });
+
+    rerender(
+      <ExerciseList
+        exercises={exercises}
+        selectedExercises={noSelection}
+        onSelect={() => {}}
+        onPressItem={() => {}}
+        bottomInset
+      />,
+    );
+    expect(lastProps().contentContainerStyle).toMatchObject({
+      paddingBottom: 98,
+    });
   });
 });

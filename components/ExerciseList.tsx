@@ -5,6 +5,7 @@ import { t } from "@lingui/core/macro";
 import { ThemedText } from "./ThemedText";
 import ExerciseItem from "./ExerciseItem";
 import { Exercise } from "@/utils/database";
+import { useBottomScrollPadding } from "@/hooks/useBottomScrollPadding";
 
 interface ExerciseListProps {
   exercises: {
@@ -17,6 +18,9 @@ interface ExerciseListProps {
   onPressItem: (item: Exercise) => void;
   showCheckbox?: boolean;
   scrollKey?: string;
+  // Screens without their own bottom bar: keep the end of the list clear of
+  // the system navigation bar.
+  bottomInset?: boolean;
   sectionTitles?: {
     activePlan?: string;
     favorites?: string;
@@ -37,8 +41,17 @@ const ExerciseList = ({
   onPressItem,
   showCheckbox = true,
   scrollKey,
+  bottomInset = false,
   sectionTitles,
 }: ExerciseListProps) => {
+  const insetPadding = useBottomScrollPadding(50);
+  const contentContainerStyle = useMemo(
+    () =>
+      bottomInset
+        ? { ...styles.flatListContent, paddingBottom: insetPadding }
+        : styles.flatListContent,
+    [bottomInset, insetPadding],
+  );
   const listData = useMemo(() => {
     const exerciseRows = (items: Exercise[]): ListRow[] =>
       items.map((item) => ({ type: "exercise", item }));
@@ -147,7 +160,7 @@ const ExerciseList = ({
       }
       getItemType={getItemType}
       renderItem={renderExerciseItem}
-      contentContainerStyle={styles.flatListContent}
+      contentContainerStyle={contentContainerStyle}
     />
   );
 };

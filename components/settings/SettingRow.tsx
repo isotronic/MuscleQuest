@@ -19,6 +19,7 @@ import {
 import { ActivityIndicator, Switch } from "react-native-paper";
 import { t } from "@lingui/core/macro";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { useBottomScrollPadding } from "@/hooks/useBottomScrollPadding";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useLocalSearchParams } from "expo-router";
 import type { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -45,6 +46,7 @@ export function SettingsScroll({ children }: { children: React.ReactNode }) {
   const { isLoading, isError, refetch } = useSettingsQuery();
   const { highlight } = useLocalSearchParams<{ highlight?: string }>();
   const scrollRef = useRef<ScrollView>(null);
+  const bottomPadding = useBottomScrollPadding(16);
   const value = useMemo(
     () => ({
       highlight,
@@ -76,7 +78,13 @@ export function SettingsScroll({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemedView style={styles.screen}>
-      <ScrollView ref={scrollRef} contentContainerStyle={styles.container}>
+      <ScrollView
+        ref={scrollRef}
+        contentContainerStyle={[
+          styles.container,
+          { paddingBottom: bottomPadding },
+        ]}
+      >
         <HighlightContext.Provider value={value}>
           {children}
         </HighlightContext.Provider>

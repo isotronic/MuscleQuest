@@ -121,6 +121,7 @@ export default function ExerciseLibraryScreen() {
         selectedExercises={[]}
         onSelect={() => {}}
         scrollKey={`${debouncedQuery}-${sortMode}`}
+        bottomInset
         onPressItem={(item) => {
           if (isSelectMode) {
             setPickedExercise(item);
