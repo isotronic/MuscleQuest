@@ -27,10 +27,9 @@ appId: com.isotronic.musclequest
     timeout: 15000
 - tapOn:
     id: "rest-skip"
-# The session now sits on the second set.
+# The session now sits on the second set. Matched by its text: builds older
+# than this flow have no session-set-position testID. English device.
 - extendedWaitUntil:
-    visible:
-      id: "session-set-position"
-      text: "\\D*2\\D+\\d+.*"
+    visible: "Set 2 of \\d+"
     timeout: 15000
 - pressKey: Home
