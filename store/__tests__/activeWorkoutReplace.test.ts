@@ -20,32 +20,42 @@ const store = () => useActiveWorkoutStore.getState();
 
 describe("replaceExercise", () => {
   beforeEach(() => {
-    act(() =>
+    act(() => {
       store().setWorkout(
         { id: 2, name: "Push", exercises: [exercise(1, 11), exercise(2, 12)] },
         1,
         2,
         "Push",
-      ),
-    );
+      );
+    });
   });
 
   it("marks the replacement with the row it replaced", () => {
-    act(() => store().replaceExercise(1, exercise(9)));
+    act(() => {
+      store().replaceExercise(1, exercise(9));
+    });
     const replacement = store().workout!.exercises[1];
     expect(replacement.id).toBeUndefined();
     expect(replacement.replacedFromId).toBe(12);
   });
 
   it("keeps the first row through a second replacement", () => {
-    act(() => store().replaceExercise(1, exercise(9)));
-    act(() => store().replaceExercise(1, exercise(8)));
+    act(() => {
+      store().replaceExercise(1, exercise(9));
+    });
+    act(() => {
+      store().replaceExercise(1, exercise(8));
+    });
     expect(store().workout!.exercises[1].replacedFromId).toBe(12);
   });
 
   it("leaves an exercise added in the session unmarked", () => {
-    act(() => store().appendExercise(exercise(7)));
-    act(() => store().replaceExercise(2, exercise(9)));
+    act(() => {
+      store().appendExercise(exercise(7));
+    });
+    act(() => {
+      store().replaceExercise(2, exercise(9));
+    });
     expect(store().workout!.exercises[2]).not.toHaveProperty("replacedFromId");
   });
 });

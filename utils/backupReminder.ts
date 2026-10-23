@@ -1,7 +1,5 @@
 export type BackupReminderReason =
-  | "signedOutNoBackup"
-  | "neverBackedUp"
-  | "stale";
+  "signedOutNoBackup" | "neverBackedUp" | "stale";
 
 export type BackupReminder =
   | { reason: "signedOutNoBackup" }

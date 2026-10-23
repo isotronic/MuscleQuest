@@ -45,6 +45,8 @@ appId: com.isotronic.musclequest
     visible:
       id: "plan-save"
     timeout: 15000
+# For comparing runs by eye (see screenshots.yml).
+- takeScreenshot: screen-12-plan-editor
 - tapOn:
     id: "plan-save"
 - runFlow:

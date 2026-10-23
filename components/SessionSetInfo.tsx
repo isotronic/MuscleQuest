@@ -72,8 +72,7 @@ interface SessionSetInfoProps {
   onOpenPlateCalculator?: () => void;
   workingSetOrdinal?: number;
   progressionSuggestion?:
-    | import("@/types/progression").ExerciseProgressionState
-    | null;
+    import("@/types/progression").ExerciseProgressionState | null;
   /** This set last time, in display units. Hidden when there is none. */
   previousSet?: PreviousSet | null;
   /** The weight a progression suggestion prefilled for this set. */
@@ -263,7 +262,10 @@ export default function SessionSetInfo({
           disabled={!!isFirstSetOfFirstExercise}
           iconColor={colors.contentPrimary}
         />
-        <ThemedText style={styles.setNavigationText}>
+        <ThemedText
+          style={styles.setNavigationText}
+          testID="session-set-position"
+        >
           <Trans>
             Set {currentSetIndex + 1} of {totalSets}
           </Trans>

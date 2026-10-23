@@ -1,8 +1,7 @@
 import Fuse, { type IFuseOptions } from "fuse.js";
 
 export type TranslatedBody =
-  | string
-  | { lead: string; steps: string[]; ordered: boolean };
+  string | { lead: string; steps: string[]; ordered: boolean };
 
 export type SearchableSection = {
   id: string;
@@ -101,8 +100,7 @@ export function buildHelpIndex(groups: SearchableGroup[]): Fuse<HelpDoc> {
 
 function rangesForKey(
   matches:
-    | readonly { key?: string; indices: readonly CharRange[] }[]
-    | undefined,
+    readonly { key?: string; indices: readonly CharRange[] }[] | undefined,
   key: string,
 ): CharRange[] {
   if (!matches) return [];
@@ -205,12 +203,10 @@ export function stepLocalHighlightRanges(
   const [stepStart, stepEnd] = stepRange;
   return bodyRanges
     .filter(([s, e]) => s < stepEnd && e > stepStart)
-    .map(
-      ([s, e]): CharRange => [
-        Math.max(s, stepStart) - stepStart,
-        Math.min(e, stepEnd) - stepStart,
-      ],
-    );
+    .map(([s, e]): CharRange => [
+      Math.max(s, stepStart) - stepStart,
+      Math.min(e, stepEnd) - stepStart,
+    ]);
 }
 
 /**

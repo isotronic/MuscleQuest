@@ -1,0 +1,42 @@
+# Upgrade install, part 2, on the new build installed over the old one: the
+# workout from upgrade-before.yml resumes with its logged set and position,
+# finishes, and shows up in the history.
+appId: com.isotronic.musclequest
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "home-resume-workout"
+    timeout: 60000
+- tapOn:
+    id: "home-resume-workout"
+- tapOn:
+    id: "workout-exercise-expand-0"
+- extendedWaitUntil:
+    visible:
+      id: "overview-set-check-0-0"
+      checked: true
+    timeout: 15000
+- assertVisible:
+    id: "overview-set-check-0-1"
+    checked: false
+# The values logged on the old build came through, not just the check mark.
+- assertVisible: "60 (lbs|kg) × 8"
+- tapOn:
+    id: "workout-exercise-0"
+- extendedWaitUntil:
+    visible:
+      id: "session-set-position"
+      text: "\\D*2\\D+\\d+.*"
+    timeout: 15000
+- back
+- runFlow: flows/finish-workout.yml
+- runFlow: flows/close-summary.yml
+- tapOn:
+    id: "tab-stats"
+- scrollUntilVisible:
+    element:
+      id: "history-workout"
+    timeout: 15000
+- tapOn:
+    id: "tab-home"

@@ -12,6 +12,8 @@ const { reactNative } = require("@bugsnag/source-maps");
 const execFileAsync = promisify(execFile);
 const PROJECT_ROOT = process.cwd();
 const CHANNEL = process.env.EAS_UPDATE_CHANNEL || "production";
+// EAS environment for server-side env vars; required since SDK 55.
+const ENVIRONMENT = process.env.EAS_UPDATE_ENVIRONMENT || "production";
 
 function ask(question) {
   const rl = readline.createInterface({
@@ -74,6 +76,8 @@ async function run() {
       "update",
       "--channel",
       CHANNEL,
+      "--environment",
+      ENVIRONMENT,
       "--platform",
       "android",
       "--non-interactive",

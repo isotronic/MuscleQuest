@@ -3,7 +3,7 @@ import {
   getFirestore,
   collection,
   getDocs,
-  FirebaseFirestoreTypes,
+  type QueryDocumentSnapshot,
 } from "@react-native-firebase/firestore";
 import { withTimeout } from "@/utils/withTimeout";
 import { appCheckReady } from "@/utils/initAppCheck";
@@ -175,9 +175,7 @@ export const useSocialSyncOnStartup = () => {
             ),
           ]);
           const published = new Set(
-            snap.docs.map(
-              (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) => d.id,
-            ),
+            snap.docs.map((d: QueryDocumentSnapshot) => d.id),
           );
           const missing = exercises.filter(
             (ex: Exercise) =>

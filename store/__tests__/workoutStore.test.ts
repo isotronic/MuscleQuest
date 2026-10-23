@@ -514,7 +514,9 @@ describe("useWorkoutStore", () => {
 
     it("moves a workout forward and remaps the schedule", () => {
       seedThree();
-      act(() => useWorkoutStore.getState().reorderWorkouts(0, 2));
+      act(() => {
+        useWorkoutStore.getState().reorderWorkouts(0, 2);
+      });
       const { workouts, planSchedule } = useWorkoutStore.getState();
       expect(workouts.map((w) => w.name)).toEqual(["W1", "W2", "W0"]);
       expect(planSchedule).toEqual({ 1: 2, 3: 0, 5: 1 });
@@ -522,7 +524,9 @@ describe("useWorkoutStore", () => {
 
     it("moves a workout backward and remaps the schedule", () => {
       seedThree();
-      act(() => useWorkoutStore.getState().reorderWorkouts(2, 0));
+      act(() => {
+        useWorkoutStore.getState().reorderWorkouts(2, 0);
+      });
       const { workouts, planSchedule } = useWorkoutStore.getState();
       expect(workouts.map((w) => w.name)).toEqual(["W2", "W0", "W1"]);
       expect(planSchedule).toEqual({ 1: 1, 3: 2, 5: 0 });
@@ -535,7 +539,9 @@ describe("useWorkoutStore", () => {
     ])("ignores the move (%i, %i)", (from, to) => {
       seedThree();
       const before = useWorkoutStore.getState().workouts;
-      act(() => useWorkoutStore.getState().reorderWorkouts(from, to));
+      act(() => {
+        useWorkoutStore.getState().reorderWorkouts(from, to);
+      });
       expect(useWorkoutStore.getState().workouts).toBe(before);
     });
   });
@@ -556,13 +562,17 @@ describe("useWorkoutStore", () => {
 
     it("removeWorkout drops its days and shifts later indices", () => {
       seedSchedule();
-      act(() => useWorkoutStore.getState().removeWorkout(1));
+      act(() => {
+        useWorkoutStore.getState().removeWorkout(1);
+      });
       expect(useWorkoutStore.getState().planSchedule).toEqual({ 1: 0, 5: 1 });
     });
 
     it("syncScheduleOnRemoveWorkout drops its days and shifts later indices", () => {
       seedSchedule();
-      act(() => useWorkoutStore.getState().syncScheduleOnRemoveWorkout(1));
+      act(() => {
+        useWorkoutStore.getState().syncScheduleOnRemoveWorkout(1);
+      });
       expect(useWorkoutStore.getState().planSchedule).toEqual({ 1: 0, 5: 1 });
     });
 
@@ -635,7 +645,7 @@ describe("useWorkoutStore", () => {
       ["time", "weight", "default"],
     ])("%s to %s keeps the %s sets", (from, to, expected) => {
       seedWorkout([ex("Old", oldSets, { tracking_type: from })]);
-      act(() =>
+      act(() => {
         useWorkoutStore
           .getState()
           .replaceExercise(
@@ -644,8 +654,8 @@ describe("useWorkoutStore", () => {
             ex("New", [], { tracking_type: to }),
             defaultSets,
             defaultTimeSets,
-          ),
-      );
+          );
+      });
       const expectedSets =
         expected === "old"
           ? oldSets
@@ -657,11 +667,11 @@ describe("useWorkoutStore", () => {
 
     it("gives the replaced row a new clientKey", () => {
       seedWorkout([ex("Old", oldSets, { clientKey: "old-key" })]);
-      act(() =>
+      act(() => {
         useWorkoutStore
           .getState()
-          .replaceExercise(0, 0, ex("New", []), defaultSets, defaultTimeSets),
-      );
+          .replaceExercise(0, 0, ex("New", []), defaultSets, defaultTimeSets);
+      });
       const { clientKey } = exercisesNow()[0];
       expect(clientKey).toBeTruthy();
       expect(clientKey).not.toBe("old-key");
@@ -672,11 +682,11 @@ describe("useWorkoutStore", () => {
         ex("A", oldSets, { supersetGroupId: "g" }),
         ex("B", oldSets, { supersetGroupId: "g" }),
       ]);
-      act(() =>
+      act(() => {
         useWorkoutStore
           .getState()
-          .replaceExercise(0, 1, ex("New", []), defaultSets, defaultTimeSets),
-      );
+          .replaceExercise(0, 1, ex("New", []), defaultSets, defaultTimeSets);
+      });
       expect(exercisesNow()[1].supersetGroupId).toBe("g");
     });
   });
@@ -684,22 +694,22 @@ describe("useWorkoutStore", () => {
   describe("superset halves keep equal set counts", () => {
     it("createSuperset pads the new partner to the exercise's set count", () => {
       seedWorkout([ex("A", [set(1), set(2), set(3)])]);
-      act(() =>
+      act(() => {
         useWorkoutStore
           .getState()
-          .createSuperset(0, 0, ex("X", [set(9), set(8)])),
-      );
+          .createSuperset(0, 0, ex("X", [set(9), set(8)]));
+      });
       const [, x] = exercisesNow();
       expect(x.sets.map((s) => s.repsMin)).toEqual([9, 8, 8]);
     });
 
     it("createSuperset trims the new partner to the exercise's set count", () => {
       seedWorkout([ex("A", [set(1)])]);
-      act(() =>
+      act(() => {
         useWorkoutStore
           .getState()
-          .createSuperset(0, 0, ex("X", [set(9), set(8), set(7)])),
-      );
+          .createSuperset(0, 0, ex("X", [set(9), set(8), set(7)]));
+      });
       expect(exercisesNow()[1].sets.map((s) => s.repsMin)).toEqual([9]);
     });
 
@@ -713,7 +723,7 @@ describe("useWorkoutStore", () => {
         set(0, { time: 30 }),
         set(0, { time: 30 }),
       ];
-      act(() =>
+      act(() => {
         useWorkoutStore
           .getState()
           .replaceExercise(
@@ -722,8 +732,8 @@ describe("useWorkoutStore", () => {
             ex("Plank", [], { tracking_type: "time" }),
             [set(10)],
             timeSets,
-          ),
-      );
+          );
+      });
       expect(exercisesNow()[1].sets).toHaveLength(2);
     });
   });
@@ -735,9 +745,9 @@ describe("useWorkoutStore", () => {
         ex("B", [set(3), set(4)], { supersetGroupId: "g" }),
       ]);
       const inserted = set(9, { isWarmup: true });
-      act(() =>
-        useWorkoutStore.getState().insertSetAtExercise(0, 0, 1, inserted),
-      );
+      act(() => {
+        useWorkoutStore.getState().insertSetAtExercise(0, 0, 1, inserted);
+      });
       const [a, b] = exercisesNow();
       expect(a.sets).toHaveLength(3);
       expect(b.sets).toHaveLength(3);
@@ -753,9 +763,9 @@ describe("useWorkoutStore", () => {
     it("ignores an exercise index that does not exist", () => {
       seedWorkout([ex("A", [set(1)])]);
       const before = useWorkoutStore.getState().workouts;
-      act(() =>
-        useWorkoutStore.getState().insertSetAtExercise(0, 5, 0, set(2)),
-      );
+      act(() => {
+        useWorkoutStore.getState().insertSetAtExercise(0, 5, 0, set(2));
+      });
       expect(useWorkoutStore.getState().workouts).toBe(before);
     });
   });
@@ -766,7 +776,9 @@ describe("useWorkoutStore", () => {
         ex("A", [set(1), set(2), set(3)], { supersetGroupId: "g" }),
         ex("B", [set(4), set(5), set(6)], { supersetGroupId: "g" }),
       ]);
-      act(() => useWorkoutStore.getState().removeSetFromExercise(0, 0, 1));
+      act(() => {
+        useWorkoutStore.getState().removeSetFromExercise(0, 0, 1);
+      });
       const [a, b] = exercisesNow();
       expect(a.sets.map((s) => s.repsMin)).toEqual([1, 3]);
       expect(b.sets.map((s) => s.repsMin)).toEqual([4, 6]);
@@ -774,7 +786,9 @@ describe("useWorkoutStore", () => {
 
     it("keeps the last set of a single exercise", () => {
       seedWorkout([ex("A", [set(1)])]);
-      act(() => useWorkoutStore.getState().removeSetFromExercise(0, 0, 0));
+      act(() => {
+        useWorkoutStore.getState().removeSetFromExercise(0, 0, 0);
+      });
       expect(exercisesNow()[0].sets).toHaveLength(1);
     });
 
@@ -787,7 +801,9 @@ describe("useWorkoutStore", () => {
         ex("A", [set(1)], { supersetGroupId: "g" }),
         ex("B", [set(2), set(3)], { supersetGroupId: "g" }),
       ]);
-      act(() => useWorkoutStore.getState().removeSetFromExercise(0, 1, 0));
+      act(() => {
+        useWorkoutStore.getState().removeSetFromExercise(0, 1, 0);
+      });
       const [a, b] = exercisesNow();
       expect(a.sets.length).toBe(b.sets.length);
     });
@@ -799,9 +815,9 @@ describe("useWorkoutStore", () => {
         ex("A", [set(1), set(2)], { supersetGroupId: "g" }),
         ex("B", [set(3), set(4)], { supersetGroupId: "g" }),
       ]);
-      act(() =>
-        useWorkoutStore.getState().updateSetInExercise(0, 0, 1, set(20)),
-      );
+      act(() => {
+        useWorkoutStore.getState().updateSetInExercise(0, 0, 1, set(20));
+      });
       const [a, b] = exercisesNow();
       expect(a.sets.map((s) => s.repsMin)).toEqual([1, 20]);
       expect(b.sets.map((s) => s.repsMin)).toEqual([3, 4]);
@@ -811,11 +827,11 @@ describe("useWorkoutStore", () => {
   describe("setExerciseTrackingTypeOverride", () => {
     it("sets the override", () => {
       seedWorkout([ex("Pull-up", [set(1)], { tracking_type: "reps" })]);
-      act(() =>
+      act(() => {
         useWorkoutStore
           .getState()
-          .setExerciseTrackingTypeOverride(0, 0, "weight"),
-      );
+          .setExerciseTrackingTypeOverride(0, 0, "weight");
+      });
       expect(exercisesNow()[0].tracking_type_override).toBe("weight");
     });
 
@@ -826,11 +842,11 @@ describe("useWorkoutStore", () => {
           tracking_type_override: "weight",
         }),
       ]);
-      act(() =>
+      act(() => {
         useWorkoutStore
           .getState()
-          .setExerciseTrackingTypeOverride(0, 0, undefined),
-      );
+          .setExerciseTrackingTypeOverride(0, 0, undefined);
+      });
       expect("tracking_type_override" in exercisesNow()[0]).toBe(false);
     });
   });
@@ -838,9 +854,9 @@ describe("useWorkoutStore", () => {
   describe("supersets", () => {
     it("createSuperset inserts the partner after the exercise with a shared group", () => {
       seedWorkout([ex("A", [set(1)]), ex("C", [set(2)])]);
-      act(() =>
-        useWorkoutStore.getState().createSuperset(0, 0, ex("X", [set(3)])),
-      );
+      act(() => {
+        useWorkoutStore.getState().createSuperset(0, 0, ex("X", [set(3)]));
+      });
       const [a, x, c] = exercisesNow();
       expect([a.name, x.name, c.name]).toEqual(["A", "X", "C"]);
       expect(a.supersetGroupId).toBeTruthy();
@@ -856,7 +872,9 @@ describe("useWorkoutStore", () => {
         ex("C", [set(3)], { supersetGroupId: "h" }),
         ex("D", [set(4)], { supersetGroupId: "h" }),
       ]);
-      act(() => useWorkoutStore.getState().removeFromSuperset(0, 1));
+      act(() => {
+        useWorkoutStore.getState().removeFromSuperset(0, 1);
+      });
       const exercises = exercisesNow();
       expect("supersetGroupId" in exercises[0]).toBe(false);
       expect("supersetGroupId" in exercises[1]).toBe(false);

@@ -4,11 +4,14 @@
 # - logging a past workout starts from the saved workout
 # - plan editing deletes the plan it activates
 # - body weight switches the weight unit, so it runs last
+# - screenshots run early, so the screens look the same in every run
 appId: com.isotronic.musclequest
 ---
 - runFlow: flows/start-with-plan.yml
 - runFlow: flows/plan-workout.yml
 - runFlow: flows/quick-workout.yml
+- runFlow: flows/screenshots.yml
+- runFlow: flows/export-data.yml
 - runFlow: flows/progression.yml
 - runFlow: flows/plan-overview-actions.yml
 - runFlow: flows/superset-session.yml

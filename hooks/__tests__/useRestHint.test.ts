@@ -51,11 +51,11 @@ describe("useRestHint", () => {
     const { result } = renderHook(() => useRestHint());
     expect(result.current.hint).toBeUndefined();
 
-    act(() =>
+    act(() => {
       useRestHintStore
         .getState()
-        .showRestHints({ showPermissionHint: false, showExactAlarmHint: true }),
-    );
+        .showRestHints({ showPermissionHint: false, showExactAlarmHint: true });
+    });
 
     expect(result.current.hint).toContain("may arrive late");
     expect(result.current.hintAction?.label).toBe("Allow alarms");
@@ -63,24 +63,26 @@ describe("useRestHint", () => {
 
   it("clears the hint when the rest ends", () => {
     const { result } = renderHook(() => useRestHint());
-    act(() =>
+    act(() => {
       useRestHintStore
         .getState()
-        .showRestHints({ showPermissionHint: false, showExactAlarmHint: true }),
-    );
+        .showRestHints({ showPermissionHint: false, showExactAlarmHint: true });
+    });
 
-    act(() => useActiveWorkoutStore.setState({ timerRunning: false }));
+    act(() => {
+      useActiveWorkoutStore.setState({ timerRunning: false });
+    });
 
     expect(result.current.hint).toBeUndefined();
   });
 
   it("reschedules the running rest once alarms are allowed", () => {
     const { result } = renderHook(() => useRestHint());
-    act(() =>
+    act(() => {
       useRestHintStore
         .getState()
-        .showRestHints({ showPermissionHint: false, showExactAlarmHint: true }),
-    );
+        .showRestHints({ showPermissionHint: false, showExactAlarmHint: true });
+    });
     (exactAlarmsAllowed as jest.Mock).mockReturnValue(true);
 
     act(() => appStateListener?.("active"));

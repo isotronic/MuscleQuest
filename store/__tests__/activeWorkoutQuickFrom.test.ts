@@ -27,18 +27,22 @@ const exercise = (id: number, sets: number) =>
 describe("startQuickWorkoutFrom", () => {
   it("starts a quick workout holding the given exercises", () => {
     // A finished plan session in the store first, to show nothing carries over.
-    act(() =>
+    act(() => {
       store().setWorkout(
         { id: 2, name: "Push", exercises: [exercise(9, 2)] } as any,
         1,
         2,
         "Push",
-      ),
-    );
-    act(() => store().setSessionNote("old"));
+      );
+    });
+    act(() => {
+      store().setSessionNote("old");
+    });
 
     const exercises = [exercise(1, 3), exercise(2, 1)];
-    act(() => store().startQuickWorkoutFrom(exercises));
+    act(() => {
+      store().startQuickWorkoutFrom(exercises);
+    });
 
     expect(store().isQuickWorkout).toBe(true);
     expect(store().activeWorkout).toEqual({
@@ -58,7 +62,9 @@ describe("startQuickWorkoutFrom", () => {
 
   it("does not share the caller's objects", () => {
     const exercises = [exercise(1, 1)];
-    act(() => store().startQuickWorkoutFrom(exercises));
+    act(() => {
+      store().startQuickWorkoutFrom(exercises);
+    });
     exercises[0].sets.push({});
     expect(store().workout?.exercises[0].sets).toHaveLength(1);
   });

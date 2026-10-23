@@ -114,24 +114,19 @@ const restOf = (seconds: number) => ({
 });
 
 const planSets = (ex: PlanExerciseDef): PlanSet[] => [
-  ...(ex.warmupReps ?? []).map(
-    (reps): PlanSet => ({
-      repsMin: reps,
-      repsMax: reps,
-      ...restOf(60),
-      time: undefined,
-      isWarmup: true,
-    }),
-  ),
-  ...Array.from(
-    { length: ex.working },
-    (): PlanSet => ({
-      repsMin: ex.repsMin,
-      repsMax: ex.repsMax,
-      ...restOf(ex.rest),
-      time: undefined,
-    }),
-  ),
+  ...(ex.warmupReps ?? []).map((reps): PlanSet => ({
+    repsMin: reps,
+    repsMax: reps,
+    ...restOf(60),
+    time: undefined,
+    isWarmup: true,
+  })),
+  ...Array.from({ length: ex.working }, (): PlanSet => ({
+    repsMin: ex.repsMin,
+    repsMax: ex.repsMax,
+    ...restOf(ex.rest),
+    time: undefined,
+  })),
 ];
 
 interface ExerciseInfo {

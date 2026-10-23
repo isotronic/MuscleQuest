@@ -1,0 +1,105 @@
+# From home: screenshots of the main screens, to compare by eye against an
+# earlier run after an upgrade (icons, fonts, insets, layout). Assertions do
+# not catch those. Starts a quick workout for the session screens and
+# discards it. create-plan.yml and measurements.yml add the plan editor and
+# the measurements screen.
+appId: com.isotronic.musclequest
+---
+- takeScreenshot: screen-01-home
+- tapOn:
+    id: "tab-plans"
+- extendedWaitUntil:
+    visible:
+      id: "plans-new-plan"
+    timeout: 15000
+- takeScreenshot: screen-02-plans
+- tapOn:
+    id: "tab-stats"
+- extendedWaitUntil:
+    visible:
+      id: "stats-customize"
+    timeout: 15000
+- takeScreenshot: screen-03-stats
+- tapOn:
+    id: "stats-customize"
+- extendedWaitUntil:
+    visible:
+      id: "widget-toggle-history"
+    timeout: 15000
+- takeScreenshot: screen-04-stats-customize
+- back
+- tapOn:
+    id: "tab-more"
+- takeScreenshot: screen-05-menu
+- tapOn:
+    id: "menu-settings"
+- extendedWaitUntil:
+    visible:
+      id: "settings-search"
+    timeout: 15000
+- takeScreenshot: screen-06-settings
+- back
+- tapOn:
+    id: "tab-home"
+- scrollUntilVisible:
+    element:
+      id: "home-quick-workout"
+    timeout: 15000
+- tapOn:
+    id: "home-quick-workout"
+- extendedWaitUntil:
+    visible:
+      id: "workout-add-exercise"
+    timeout: 15000
+- tapOn:
+    id: "workout-add-exercise"
+- extendedWaitUntil:
+    visible:
+      id: "exercise-search"
+    timeout: 15000
+- takeScreenshot: screen-07-exercise-picker
+- runFlow:
+    file: pick-exercise.yml
+    env:
+      SEARCH: "Bench Press"
+- tapOn:
+    id: "exercise-picker-add"
+- extendedWaitUntil:
+    visible:
+      id: "workout-exercise-0"
+    timeout: 15000
+- takeScreenshot: screen-08-workout-overview
+- tapOn:
+    id: "workout-exercise-0"
+- extendedWaitUntil:
+    visible:
+      id: "complete-set"
+      childOf:
+        id: "session-current-set"
+    timeout: 15000
+- takeScreenshot: screen-09-session
+- tapOn:
+    id: "set-note-button"
+    childOf:
+      id: "session-current-set"
+- extendedWaitUntil:
+    visible:
+      id: "note-close"
+    timeout: 15000
+- takeScreenshot: screen-10-note-sheet
+- tapOn:
+    id: "note-close"
+- runFlow:
+    file: log-set.yml
+    env:
+      WEIGHT: "50"
+      REPS: "5"
+- extendedWaitUntil:
+    visible:
+      id: "rest-skip"
+    timeout: 15000
+- takeScreenshot: screen-11-rest-timer
+- tapOn:
+    id: "rest-skip"
+- back
+- runFlow: discard-workout.yml

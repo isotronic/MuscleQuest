@@ -4,7 +4,7 @@ export default {
   expo: {
     name: IS_DEV ? "Muscle Quest (Dev)" : "Muscle Quest",
     slug: "musclequest",
-    version: "1.6.0", // M.mm.pp
+    version: "1.7.0", // M.mm.pp
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "musclequest",
@@ -14,7 +14,7 @@ export default {
       bundleIdentifier: "com.isotronic.musclequest",
     },
     android: {
-      versionCode: 10600, // Mmmpp
+      versionCode: 10700, // Mmmpp
       googleServicesFile: "./google-services.json",
       adaptiveIcon: {
         foregroundImage: "./assets/images/ic_launcher_foreground.png",
@@ -64,15 +64,15 @@ export default {
         "expo-font",
         {
           fonts: [
-            "node_modules/@expo-google-fonts/inter/Inter_100Thin.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_200ExtraLight.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_300Light.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_400Regular.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_500Medium.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_600SemiBold.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_700Bold.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_800ExtraBold.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_900Black.ttf",
+            "node_modules/@expo-google-fonts/inter/100Thin/Inter_100Thin.ttf",
+            "node_modules/@expo-google-fonts/inter/200ExtraLight/Inter_200ExtraLight.ttf",
+            "node_modules/@expo-google-fonts/inter/300Light/Inter_300Light.ttf",
+            "node_modules/@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf",
+            "node_modules/@expo-google-fonts/inter/500Medium/Inter_500Medium.ttf",
+            "node_modules/@expo-google-fonts/inter/600SemiBold/Inter_600SemiBold.ttf",
+            "node_modules/@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf",
+            "node_modules/@expo-google-fonts/inter/800ExtraBold/Inter_800ExtraBold.ttf",
+            "node_modules/@expo-google-fonts/inter/900Black/Inter_900Black.ttf",
           ],
         },
       ],
@@ -117,7 +117,6 @@ export default {
     experiments: {
       typedRoutes: true,
     },
-    newArchEnabled: true,
     extra: {
       router: {
         origin: false,

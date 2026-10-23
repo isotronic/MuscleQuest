@@ -93,7 +93,7 @@ beforeEach(() => {
 
   mockSignIn.mockImplementation(async () => {
     calls.push("signIn");
-    return { idToken: "token" };
+    return { type: "success", data: { idToken: "token" } };
   });
   mockReauth.mockImplementation(record("reauth"));
   mockDeleteUser.mockImplementation(record("deleteUser"));
@@ -172,11 +172,12 @@ describe("deleteAccount", () => {
   });
 
   it("stops when Google returns no ID token", async () => {
-    mockSignIn.mockResolvedValue({ idToken: null });
+    mockSignIn.mockResolvedValue({ type: "success", data: { idToken: null } });
 
     const error = await deleteAccount("me").catch((e) => e);
 
     expect(error.step).toBe("reauth");
+    expect(error.cause.message).toBe("Google sign-in returned no ID token");
     expect(mockReauth).not.toHaveBeenCalled();
     expect(mockRemoveFriend).not.toHaveBeenCalled();
   });
@@ -190,6 +191,19 @@ describe("deleteAccount", () => {
     expect(mockRemoveFriend).toHaveBeenCalledWith("me", "f1");
     expect(mockRemoveFriend).toHaveBeenCalledWith("me", "f2");
     expect(mockDeleteDoc).not.toHaveBeenCalled();
+  });
+
+  it("marks a cancelled Google prompt as cancelled and does not report it", async () => {
+    // Google Sign-In 13+ resolves a dismissed prompt instead of throwing.
+    mockSignIn.mockResolvedValue({ type: "cancelled", data: null });
+
+    const error = await deleteAccount("me").catch((e) => e);
+
+    expect(error).toBeInstanceOf(AccountDeletionError);
+    expect(error.step).toBe("reauth");
+    expect(error.cancelled).toBe(true);
+    expect(mockReauth).not.toHaveBeenCalled();
+    expect(Bugsnag.notify).not.toHaveBeenCalled();
   });
 
   it("marks a dismissed Google prompt as cancelled and does not report it", async () => {

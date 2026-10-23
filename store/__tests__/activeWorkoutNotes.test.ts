@@ -26,7 +26,7 @@ const exercise = (id: number, sets = 3) =>
 const store = () => useActiveWorkoutStore.getState();
 
 const seed = () => {
-  act(() =>
+  act(() => {
     store().setWorkout(
       {
         id: 2,
@@ -36,8 +36,8 @@ const seed = () => {
       1,
       2,
       "Push",
-    ),
-  );
+    );
+  });
   act(() => {
     store().setSetNote(0, 1, "bar felt heavy");
     store().setSetNote(1, 2, "shoulder on rep 6");
@@ -54,7 +54,9 @@ describe("session note", () => {
   beforeEach(seed);
 
   it("is stored and persisted for crash recovery", () => {
-    act(() => store().setSessionNote("Slept badly"));
+    act(() => {
+      store().setSessionNote("Slept badly");
+    });
 
     expect(store().sessionNote).toBe("Slept badly");
     expect(persistOptions().partialize(store()).sessionNote).toBe(
@@ -63,21 +65,35 @@ describe("session note", () => {
   });
 
   it("starts empty for every new session and after clearing", () => {
-    act(() => store().setSessionNote("Slept badly"));
-    act(() => store().startQuickWorkout());
+    act(() => {
+      store().setSessionNote("Slept badly");
+    });
+    act(() => {
+      store().startQuickWorkout();
+    });
     expect(store().sessionNote).toBe("");
     expect(store().setNotes).toEqual({});
 
-    act(() => store().setSessionNote("Quick one"));
-    act(() => store().setSetNote(0, 0, "x"));
-    act(() => store().clearPersistedStore());
+    act(() => {
+      store().setSessionNote("Quick one");
+    });
+    act(() => {
+      store().setSetNote(0, 0, "x");
+    });
+    act(() => {
+      store().clearPersistedStore();
+    });
     expect(store().sessionNote).toBe("");
     expect(store().setNotes).toEqual({});
   });
 
   it("is cleared by a restart", () => {
-    act(() => store().setSessionNote("Slept badly"));
-    act(() => store().restartWorkout());
+    act(() => {
+      store().setSessionNote("Slept badly");
+    });
+    act(() => {
+      store().restartWorkout();
+    });
     expect(store().sessionNote).toBe("");
     expect(store().setNotes).toEqual({});
   });
@@ -98,13 +114,17 @@ describe("set notes", () => {
   });
 
   it("drop the entry when the note is cleared", () => {
-    act(() => store().setSetNote(0, 1, "   "));
+    act(() => {
+      store().setSetNote(0, 1, "   ");
+    });
     expect(store().setNotes[0]).toEqual({});
   });
 
   it("follow their exercises through a reorder", () => {
     const [a, b, c] = store().workout!.exercises;
-    act(() => store().reorderExercises([c, a, b]));
+    act(() => {
+      store().reorderExercises([c, a, b]);
+    });
 
     expect(store().setNotes).toEqual({
       0: { 0: "easy" },
@@ -114,7 +134,9 @@ describe("set notes", () => {
   });
 
   it("shift down when an exercise is removed", () => {
-    act(() => store().deleteExercise(0));
+    act(() => {
+      store().deleteExercise(0);
+    });
 
     expect(store().setNotes).toEqual({
       0: { 2: "shoulder on rep 6" },
@@ -125,34 +147,52 @@ describe("set notes", () => {
   it("come back with an exercise restored by undo", () => {
     const before = store().setNotes;
     const snapshot = store().snapshotExercise(1)!;
-    act(() => store().deleteExercise(1));
-    act(() => store().restoreExercise(snapshot));
+    act(() => {
+      store().deleteExercise(1);
+    });
+    act(() => {
+      store().restoreExercise(snapshot);
+    });
 
     expect(store().setNotes).toEqual(before);
   });
 
   it("stay on the right sets when a set is removed and restored", () => {
-    act(() => store().setCurrentExerciseIndex(1));
+    act(() => {
+      store().setCurrentExerciseIndex(1);
+    });
     const snapshot = store().snapshotSet(1, 0)!;
-    act(() => store().removeSet(0));
+    act(() => {
+      store().removeSet(0);
+    });
     expect(store().setNotes[1]).toEqual({ 1: "shoulder on rep 6" });
 
-    act(() => store().restoreSet(snapshot));
+    act(() => {
+      store().restoreSet(snapshot);
+    });
     expect(store().setNotes[1]).toEqual({ 2: "shoulder on rep 6" });
   });
 
   it("go with the removed set", () => {
-    act(() => store().setCurrentExerciseIndex(1));
+    act(() => {
+      store().setCurrentExerciseIndex(1);
+    });
     const snapshot = store().snapshotSet(1, 2)!;
-    act(() => store().removeSet(2));
+    act(() => {
+      store().removeSet(2);
+    });
     expect(store().setNotes[1]).toEqual({});
 
-    act(() => store().restoreSet(snapshot));
+    act(() => {
+      store().restoreSet(snapshot);
+    });
     expect(store().setNotes[1]).toEqual({ 2: "shoulder on rep 6" });
   });
 
   it("are cleared for a replaced exercise only", () => {
-    act(() => store().replaceExercise(1, exercise(9)));
+    act(() => {
+      store().replaceExercise(1, exercise(9));
+    });
 
     expect(store().setNotes).toEqual({
       0: { 1: "bar felt heavy" },
@@ -162,7 +202,9 @@ describe("set notes", () => {
   });
 
   it("shift up when a superset partner is inserted", () => {
-    act(() => store().createSuperset(0, exercise(9)));
+    act(() => {
+      store().createSuperset(0, exercise(9));
+    });
 
     expect(store().setNotes).toEqual({
       0: { 1: "bar felt heavy" },
@@ -173,9 +215,15 @@ describe("set notes", () => {
   });
 
   it("are not copied onto an added set", () => {
-    act(() => store().setCurrentExerciseIndex(1));
-    act(() => store().addSet());
-    act(() => store().addDropSet());
+    act(() => {
+      store().setCurrentExerciseIndex(1);
+    });
+    act(() => {
+      store().addSet();
+    });
+    act(() => {
+      store().addDropSet();
+    });
 
     expect(store().setNotes[1]).toEqual({ 2: "shoulder on rep 6" });
   });
@@ -183,7 +231,9 @@ describe("set notes", () => {
 
 describe("a session saved before notes existed", () => {
   it("restores with an empty session note and no set notes", async () => {
-    act(() => store().clearPersistedStore());
+    act(() => {
+      store().clearPersistedStore();
+    });
     await AsyncStorage.setItem(
       "active-workout-store",
       JSON.stringify({
@@ -205,7 +255,9 @@ describe("a session saved before notes existed", () => {
     });
     expect(store().sessionNote).toBe("");
     expect(store().setNotes).toEqual({});
-    act(() => store().setSetNote(0, 0, "felt fine"));
+    act(() => {
+      store().setSetNote(0, 0, "felt fine");
+    });
     expect(store().setNotes).toEqual({ 0: { 0: "felt fine" } });
   });
 });

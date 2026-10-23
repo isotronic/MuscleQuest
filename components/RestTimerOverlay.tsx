@@ -168,7 +168,12 @@ export default function RestTimerOverlay({
       </Button>
       {hint ? <ThemedText style={styles.hint}>{hint}</ThemedText> : null}
       {hint && hintAction ? (
-        <Button mode="text" compact onPress={hintAction.onPress}>
+        <Button
+          mode="text"
+          compact
+          onPress={hintAction.onPress}
+          testID="rest-hint-action"
+        >
           {hintAction.label}
         </Button>
       ) : null}

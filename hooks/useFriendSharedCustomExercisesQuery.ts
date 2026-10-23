@@ -4,7 +4,7 @@ import {
   getFirestore,
   collection,
   getDocs,
-  FirebaseFirestoreTypes,
+  type QueryDocumentSnapshot,
 } from "@react-native-firebase/firestore";
 import { AuthContext } from "@/context/AuthProvider";
 import { SharedCustomExercise } from "@/types/firestore";
@@ -31,8 +31,7 @@ export const useFriendSharedCustomExercisesQuery = (
           "friendSharedCustomExercises",
         );
         return snap.docs.map(
-          (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) =>
-            d.data() as SharedCustomExercise,
+          (d: QueryDocumentSnapshot) => d.data() as SharedCustomExercise,
         );
       } catch (error) {
         reportFirestoreReadError("friendSharedCustomExercises", error);

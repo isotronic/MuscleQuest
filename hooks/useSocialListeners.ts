@@ -10,7 +10,8 @@ import {
   query,
   where,
   onSnapshot,
-  FirebaseFirestoreTypes,
+  type DocumentSnapshot,
+  type QueryDocumentSnapshot,
 } from "@react-native-firebase/firestore";
 import { withTimeout } from "@/utils/withTimeout";
 import { appCheckReady } from "@/utils/initAppCheck";
@@ -26,8 +27,8 @@ import { FriendInfo, FirestorePrivateSettings } from "../types/firestore";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { demoMode } from "@/dev/demo/gate";
 
-type QDocSnap = FirebaseFirestoreTypes.QueryDocumentSnapshot;
-type DocSnap = FirebaseFirestoreTypes.DocumentSnapshot;
+type QDocSnap = QueryDocumentSnapshot;
+type DocSnap = DocumentSnapshot;
 
 type ListenerScope =
   | "pendingRequests"

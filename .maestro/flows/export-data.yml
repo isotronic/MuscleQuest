@@ -1,0 +1,53 @@
+# From home: export the training data as JSON into the Download folder through
+# the system folder picker. The picker and its permission dialog are Android
+# UI, so they are matched by their English text; run this on an English device.
+appId: com.isotronic.musclequest
+---
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "menu-settings"
+- tapOn:
+    id: "settings-data"
+- scrollUntilVisible:
+    element:
+      id: "setting-export"
+- tapOn:
+    id: "setting-export"
+# Cancel, JSON, CSV: React Native makes them the neutral, negative and
+# positive buttons, so JSON is button2.
+- tapOn:
+    id: "android:id/button2"
+- extendedWaitUntil:
+    visible: "(?i)use this folder"
+    timeout: 15000
+- tapOn: "Download"
+# Android does not let apps use Download itself, so use a folder inside it,
+# created on the first run.
+- runFlow:
+    when:
+      notVisible: "E2E Export"
+    commands:
+      - tapOn: "(?i)create new folder"
+      - inputText: "E2E Export"
+      - tapOn:
+          id: "android:id/button1"
+- runFlow:
+    when:
+      visible: "E2E Export"
+    commands:
+      - tapOn: "E2E Export"
+- tapOn: "(?i)use this folder"
+- tapOn: "(?i)allow"
+# "Export complete", not "Export failed".
+- extendedWaitUntil:
+    visible:
+      id: "android:id/button1"
+    timeout: 30000
+- assertNotVisible: "Export failed"
+- tapOn:
+    id: "android:id/button1"
+- back
+- back
+- tapOn:
+    id: "tab-home"

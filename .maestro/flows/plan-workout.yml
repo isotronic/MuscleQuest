@@ -1,5 +1,6 @@
 # From home with an active plan: start today's workout, log two sets with the
-# rest timer in between, finish, and see the week's goal move.
+# rest timer in between, let the second rest end in the background, finish,
+# and see the week's goal move.
 appId: com.isotronic.musclequest
 ---
 - scrollUntilVisible:
@@ -24,6 +25,29 @@ appId: com.isotronic.musclequest
     visible:
       id: "rest-countdown"
     timeout: 15000
+# Without exact alarms, the first rest offers to allow them. Allow them in
+# Android's settings (English text, as below), so the rest notification later
+# arrives on time instead of within Android's inexact window, which can run
+# minutes past the rest. Android keeps the permission across reinstalls and
+# cleared data, so after the first run there is no offer.
+- extendedWaitUntil:
+    visible:
+      id: "rest-hint-action"
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: "rest-hint-action"
+    commands:
+      - tapOn:
+          id: "rest-hint-action"
+      - tapOn: "Allow setting alarms and reminders"
+      - back
+      - extendedWaitUntil:
+          visible:
+            id: "rest-countdown"
+          timeout: 15000
 - tapOn:
     id: "rest-add"
 - tapOn:
@@ -37,13 +61,37 @@ appId: com.isotronic.musclequest
     env:
       WEIGHT: "40"
       REPS: "10"
-# Two of several sets are done, so rest starts again.
+# Two of several sets are done, so rest starts again. Let it end with the app
+# in the background: the rest notification (now an exact alarm) must arrive.
+# The rest is not shortened first: taps on the session screen can take many
+# seconds each (Maestro waits for the screen to settle), long enough to end a
+# short rest in the app, which rightly drops the notification.
 - extendedWaitUntil:
     visible:
-      id: "rest-skip"
+      id: "rest-countdown"
     timeout: 15000
-- tapOn:
-    id: "rest-skip"
+- pressKey: Home
+# The notification shade is Android UI, so the notification is matched by its
+# English title; the suite runs on an English device.
+- swipe:
+    start: 50%, 1%
+    end: 50%, 70%
+- extendedWaitUntil:
+    visible: "Rest Timer Finished!"
+    timeout: 240000
+- tapOn: "Rest Timer Finished!"
+- extendedWaitUntil:
+    visible:
+      id: "session-current-set"
+    timeout: 15000
 - back
+# Coming back from the notification can focus an input, and then the first
+# Back only closes the keyboard.
+- runFlow:
+    when:
+      notVisible:
+        id: "workout-finish"
+    commands:
+      - back
 - runFlow: finish-workout.yml
 - runFlow: close-summary.yml

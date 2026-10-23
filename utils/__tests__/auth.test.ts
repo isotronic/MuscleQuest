@@ -21,7 +21,8 @@ describe("signInWithGoogle", () => {
     consoleSpy = jest.spyOn(console, "error").mockImplementation();
     (GoogleSignin.hasPlayServices as jest.Mock).mockResolvedValue(true);
     (GoogleSignin.signIn as jest.Mock).mockResolvedValue({
-      idToken: "testIdToken",
+      type: "success",
+      data: { idToken: "testIdToken" },
     });
     (signInWithCredential as jest.Mock).mockResolvedValue(null);
   });
@@ -47,6 +48,31 @@ describe("signInWithGoogle", () => {
       authInstance,
       mockCredential,
     );
+  });
+
+  it("returns cancelled without reporting when the prompt resolves as cancelled", async () => {
+    // Google Sign-In 13+ resolves a dismissed prompt instead of throwing.
+    (GoogleSignin.signIn as jest.Mock).mockResolvedValue({
+      type: "cancelled",
+      data: null,
+    });
+
+    await expect(signInWithGoogle()).resolves.toEqual({ status: "cancelled" });
+    expect(signInWithCredential).not.toHaveBeenCalled();
+    expect(Bugsnag.notify).not.toHaveBeenCalled();
+  });
+
+  it("reports a success without an ID token instead of signing in", async () => {
+    (GoogleSignin.signIn as jest.Mock).mockResolvedValue({
+      type: "success",
+      data: { idToken: null },
+    });
+
+    const result = await signInWithGoogle();
+
+    expect(result).toMatchObject({ status: "error", reason: "unknown" });
+    expect(signInWithCredential).not.toHaveBeenCalled();
+    expect(Bugsnag.notify).toHaveBeenCalled();
   });
 
   it("returns cancelled without reporting when the user backs out", async () => {

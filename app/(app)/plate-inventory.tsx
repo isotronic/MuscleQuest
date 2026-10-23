@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { Button, Divider } from "react-native-paper";
 import { router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedView } from "@/components/ThemedView";
@@ -40,6 +41,7 @@ const formatWeight = (value: number) => formatNumber(value, 2);
 export default function PlateInventoryScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
 
   const { data: settings } = useSettingsQuery();
   const { mutateAsync: updateSetting } = useUpdateSettingsMutation();
@@ -153,7 +155,13 @@ export default function PlateInventoryScreen() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.container}>
+      {/* Edge-to-edge: keep the buttons at the end clear of the navigation bar. */}
+      <ScrollView
+        contentContainerStyle={[
+          styles.container,
+          { paddingBottom: 32 + insets.bottom },
+        ]}
+      >
         <ThemedText style={styles.intro}>
           <Trans>
             Set how many pairs of each plate you have. The plate calculator will
@@ -287,7 +295,6 @@ function createStyles(colors: AppThemeColors) {
   return StyleSheet.create({
     container: {
       padding: 16,
-      paddingBottom: 32,
     },
     intro: {
       fontSize: 14,

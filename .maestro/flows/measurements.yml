@@ -31,6 +31,8 @@ appId: com.isotronic.musclequest
     element:
       id: "measurement-session"
     timeout: 15000
+# For comparing runs by eye (see screenshots.yml).
+- takeScreenshot: screen-13-measurements
 - tapOn:
     id: "measurement-session"
     index: 0
