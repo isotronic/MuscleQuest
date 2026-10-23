@@ -90,12 +90,12 @@ appId: com.isotronic.musclequest
     timeout: 15000
 - tapOn:
     id: "exercise-search"
-- inputText: "Squat"
+- inputText: "Split Squat"
 - hideKeyboard
 - runFlow:
     file: flows/scroll-to-end.yml
     env:
-      TIMES: 8
+      TIMES: 16
 - takeScreenshot: inset-exercise-library
 - tapOn:
     id: "exercise-row"
