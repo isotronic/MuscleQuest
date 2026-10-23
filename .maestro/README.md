@@ -8,6 +8,7 @@ blocks live in `flows/`; the top-level files are the suites:
 | `smoke.yml` | Starter plan, plan workout with the rest timer (one rest ends with the app in the background and must notify), quick workout that survives the app being killed |
 | `full.yml` | Everything, chained on one install; each flow starts and ends on home |
 | `german.yml` | Onboarding and the quick workout on a German device |
+| `inset-audit.yml` | Screenshots of the end of each stack screen's content, for checking by eye in three-button navigation that nothing sits under the navigation bar |
 | `upgrade-before.yml`, `upgrade-after.yml` | A workout left in progress on an old build resumes after a new build is installed over it; run through `scripts/e2e-upgrade-install.sh` |
 
 Selectors use `testID`s. Text is only used for names the flows type
@@ -49,6 +50,12 @@ Do not build while the emulator runs: together they exhaust the RAM on a
 `<dir>/<run>/full/takeScreenshot/`. Keep a set from a known good build and
 compare a new run against it by eye (icons, fonts, insets, layout), for
 example after an SDK upgrade. Times and dates differ between runs.
+
+`inset-audit.yml` starts from a fresh install and saves `inset-<screen>.png`
+under `<dir>/<run>/inset-audit/takeScreenshot/`. Switch to three-button
+navigation first (see Later), then look at the bottom 48dp of each image: the
+last row or button must sit fully above the bar. Delete account, friends and a
+friend's profile need a signed-in user, so check them on a phone.
 
 Upgrade install, with two APKs signed with the same key (local builds are):
 

@@ -1,0 +1,232 @@
+# Screenshots of the end of each stack screen's content, to check by eye that
+# nothing sits under Android's navigation bar. Run it in three-button
+# navigation (see README) and look at the bottom 48dp of each image. Starts
+# from a fresh install. Delete account, friends and a friend's profile need a
+# signed-in user, so they are checked on a phone.
+appId: com.isotronic.musclequest
+---
+- runFlow: flows/start-with-plan.yml
+# Settings: the index and two sub-screens (all sub-screens share one scroll
+# container).
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "menu-settings"
+- extendedWaitUntil:
+    visible:
+      id: "settings-search"
+    timeout: 15000
+- runFlow:
+    file: flows/scroll-to-end.yml
+    env:
+      TIMES: 3
+- takeScreenshot: inset-settings
+- tapOn:
+    id: "settings-workout"
+- extendedWaitUntil:
+    visible:
+      id: "setting-plates"
+    timeout: 15000
+- runFlow:
+    file: flows/scroll-to-end.yml
+    env:
+      TIMES: 6
+- takeScreenshot: inset-settings-workout
+- back
+- scrollUntilVisible:
+    element:
+      id: "settings-data"
+- tapOn:
+    id: "settings-data"
+- extendedWaitUntil:
+    visible:
+      id: "setting-export"
+    timeout: 15000
+- runFlow:
+    file: flows/scroll-to-end.yml
+    env:
+      TIMES: 6
+- takeScreenshot: inset-settings-data
+- back
+- back
+# Help and changelog.
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "menu-help"
+- extendedWaitUntil:
+    visible:
+      id: "help-chip-.*"
+    timeout: 15000
+- runFlow:
+    file: flows/scroll-to-end.yml
+    env:
+      TIMES: 30
+- takeScreenshot: inset-help
+- back
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "menu-changelog"
+- extendedWaitUntil:
+    visible:
+      id: "changelog-release-.*"
+    timeout: 15000
+- runFlow:
+    file: flows/scroll-to-end.yml
+    env:
+      TIMES: 40
+- takeScreenshot: inset-changelog
+- back
+# Exercise library, narrowed by a search so its end is a few scrolls away,
+# then one exercise's three tabs.
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "menu-exercise-library"
+- extendedWaitUntil:
+    visible:
+      id: "exercise-search"
+    timeout: 15000
+- tapOn:
+    id: "exercise-search"
+- inputText: "Squat"
+- hideKeyboard
+- runFlow:
+    file: flows/scroll-to-end.yml
+    env:
+      TIMES: 8
+- takeScreenshot: inset-exercise-library
+- tapOn:
+    id: "exercise-row"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "exercise-tab-about"
+    timeout: 15000
+- tapOn:
+    id: "exercise-tab-about"
+- runFlow:
+    file: flows/scroll-to-end.yml
+    env:
+      TIMES: 6
+- takeScreenshot: inset-exercise-info-about
+- scrollUntilVisible:
+    element:
+      id: "exercise-tab-history"
+    direction: UP
+- tapOn:
+    id: "exercise-tab-history"
+- runFlow:
+    file: flows/scroll-to-end.yml
+    env:
+      TIMES: 3
+- takeScreenshot: inset-exercise-info-history
+- scrollUntilVisible:
+    element:
+      id: "exercise-tab-progress"
+    direction: UP
+- tapOn:
+    id: "exercise-tab-progress"
+- runFlow:
+    file: flows/scroll-to-end.yml
+    env:
+      TIMES: 3
+- takeScreenshot: inset-exercise-info-progress
+- back
+- back
+- tapOn:
+    id: "tab-home"
+# Plan editor: a new plan with one workout and two exercises, then the cover
+# image search.
+- runFlow: flows/open-plans-tab.yml
+- tapOn:
+    id: "plans-new-plan"
+- extendedWaitUntil:
+    visible:
+      id: "plan-name-input"
+    timeout: 15000
+- tapOn:
+    id: "plan-name-input"
+- inputText: "Inset Plan"
+- hideKeyboard
+- tapOn:
+    id: "plan-add-workout"
+- tapOn:
+    id: "workout-name-input-0"
+- inputText: "Day A"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "workout-add-exercise-0"
+- tapOn:
+    id: "workout-add-exercise-0"
+- runFlow:
+    file: flows/pick-exercise.yml
+    env:
+      SEARCH: "Squat"
+- tapOn:
+    id: "exercise-select"
+    index: 1
+- tapOn:
+    id: "exercise-picker-add"
+- extendedWaitUntil:
+    visible:
+      id: "plan-save"
+    timeout: 15000
+- runFlow:
+    file: flows/scroll-to-end.yml
+    env:
+      TIMES: 6
+- takeScreenshot: inset-plan-editor
+- scrollUntilVisible:
+    element:
+      id: "plan-image-edit"
+    direction: UP
+- tapOn:
+    id: "plan-image-edit"
+- scrollUntilVisible:
+    element:
+      id: "image-search-device"
+    timeout: 30000
+- scroll
+- takeScreenshot: inset-image-search
+- back
+- tapOn:
+    id: "plan-save"
+# Saved workout editor.
+- runFlow: flows/open-plans-tab.yml
+- tapOn:
+    id: "plans-new-workout"
+- extendedWaitUntil:
+    visible:
+      id: "workout-name-input-0"
+    timeout: 15000
+- tapOn:
+    id: "workout-name-input-0"
+- inputText: "Inset Workout"
+- hideKeyboard
+- tapOn:
+    id: "workout-add-exercise-0"
+- runFlow:
+    file: flows/pick-exercise.yml
+    env:
+      SEARCH: "Squat"
+- tapOn:
+    id: "exercise-select"
+    index: 1
+- tapOn:
+    id: "exercise-picker-add"
+- extendedWaitUntil:
+    visible:
+      id: "workout-save"
+    timeout: 15000
+- runFlow:
+    file: flows/scroll-to-end.yml
+    env:
+      TIMES: 6
+- takeScreenshot: inset-create-workout
+- tapOn:
+    id: "workout-save"
+- tapOn:
+    id: "tab-home"
