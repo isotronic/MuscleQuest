@@ -389,6 +389,7 @@ export default function CreatePlanScreen() {
                     size={20}
                     iconColor={colors.accent}
                     style={styles.overlayIcon}
+                    testID="plan-image-edit"
                     onPress={handleImageSearch}
                   />
                 </ImageBackground>

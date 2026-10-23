@@ -74,7 +74,11 @@ export default function ImageSearchScreen() {
         contentContainerStyle={styles.grid}
         ListFooterComponent={
           <View style={styles.footer}>
-            <Button mode="contained" onPress={handlePickImage}>
+            <Button
+              mode="contained"
+              testID="image-search-device"
+              onPress={handlePickImage}
+            >
               <Trans>Choose from Device</Trans>
             </Button>
           </View>
