@@ -108,6 +108,7 @@ export default function LogPastWorkoutScreen() {
         weightUnit={weightUnit}
         distanceUnit={distanceUnit}
         saving={logWorkout.isPending}
+        bottomInset
         onChange={handleDraftChange}
         header={
           <View style={styles.source}>

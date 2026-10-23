@@ -1,11 +1,16 @@
 import React from "react";
-import { Alert } from "react-native";
+import { Alert, ScrollView, StyleSheet } from "react-native";
 import { render, fireEvent } from "@testing-library/react-native";
 import EditCompletedWorkoutScreen from "../(tabs)/(stats)/edit-history";
 import type { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import { WorkoutHistoryEditor } from "@/components/history/WorkoutHistoryEditor";
 
 const mockMutate = jest.fn();
 
+jest.mock("react-native-safe-area-context", () => ({
+  ...jest.requireActual("react-native-safe-area-context"),
+  useSafeAreaInsets: () => ({ top: 0, bottom: 48, left: 0, right: 0 }),
+}));
 jest.mock("@lingui/react/macro", () => ({
   Trans: ({ children }: { children: React.ReactNode }) => children,
   useLingui: () => ({ i18n: { locale: "en" } }),
@@ -274,5 +279,37 @@ describe("EditCompletedWorkoutScreen", () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+});
+
+describe("WorkoutHistoryEditor bottom inset", () => {
+  const initial = {
+    exercises: [],
+    completedAt: new Date(2026, 0, 5, 18, 0),
+    durationSeconds: 0,
+    notes: null,
+  };
+  const bottomPadding = (bottomInset?: boolean) => {
+    const { UNSAFE_getByType } = render(
+      <WorkoutHistoryEditor
+        initial={initial}
+        weightUnit="kg"
+        distanceUnit="m"
+        onSave={() => {}}
+        saving={false}
+        bottomInset={bottomInset}
+      />,
+    );
+    return StyleSheet.flatten(
+      UNSAFE_getByType(ScrollView).props.contentContainerStyle,
+    ).paddingBottom;
+  };
+
+  it("keeps its end padding where a tab bar sits below it", () => {
+    expect(bottomPadding()).toBe(48);
+  });
+
+  it("adds the navigation bar inset when asked", () => {
+    expect(bottomPadding(true)).toBe(96);
   });
 });
