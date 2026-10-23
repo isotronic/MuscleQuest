@@ -29,6 +29,7 @@ import {
   toSegments,
   stepLocalHighlightRanges,
 } from "@/utils/helpSearch";
+import { useBottomScrollPadding } from "@/hooks/useBottomScrollPadding";
 
 const FEATURE_REQUEST_URL = "https://www.featurize.io/p/musclequest";
 
@@ -359,6 +360,7 @@ function SearchBody({
 export default function HelpScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const bottomPadding = useBottomScrollPadding(20);
   const [query, setQuery] = useState("");
   // A link can open the screen at one group, e.g. ?group=adaptive-progression.
   const { group: linkedGroup } = useLocalSearchParams<{ group?: string }>();
@@ -498,7 +500,10 @@ export default function HelpScreen() {
 
       <ScrollView
         ref={scrollRef}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: bottomPadding },
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >

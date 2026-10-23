@@ -28,6 +28,7 @@ import { searchUserByEmail } from "@/utils/friends";
 import type { UserSearchResult } from "@/utils/friends";
 import type { FriendInfo } from "@/types/firestore";
 import type { AppThemeColors, AppThemeBorders } from "@/theme/types";
+import { useBottomScrollPadding } from "@/hooks/useBottomScrollPadding";
 
 type Tab = "friends" | "search" | "requests";
 
@@ -226,6 +227,7 @@ function FriendsTab({
   onFriendPress,
   colors,
 }: FriendsTabProps) {
+  const bottomPadding = useBottomScrollPadding(16);
   return (
     <FlatList
       testID="friends-list"
@@ -234,9 +236,10 @@ function FriendsTab({
       renderItem={({ item }: { item: FriendInfo }) => (
         <FriendListItem friend={item} onPress={onFriendPress} />
       )}
-      contentContainerStyle={
-        friends.length === 0 ? styles.emptyList : undefined
-      }
+      contentContainerStyle={[
+        friends.length === 0 && styles.emptyList,
+        { paddingBottom: bottomPadding },
+      ]}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -425,6 +428,7 @@ function RequestsTab({
   colors,
   borders,
 }: RequestsTabProps) {
+  const bottomPadding = useBottomScrollPadding(16);
   if (pendingRequests.length === 0 && sentRequests.length === 0) {
     return (
       <View style={styles.centered}>
@@ -436,7 +440,7 @@ function RequestsTab({
   }
 
   return (
-    <ScrollView>
+    <ScrollView contentContainerStyle={{ paddingBottom: bottomPadding }}>
       {pendingRequests.length > 0 && (
         <>
           <AppText

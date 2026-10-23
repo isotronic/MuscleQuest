@@ -21,6 +21,7 @@ import {
 } from "@/utils/changelog";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { useBottomScrollPadding } from "@/hooks/useBottomScrollPadding";
 
 const RELEASE_GROUPS = groupEntriesByRelease(RELEASES, WHATS_NEW_ENTRIES);
 
@@ -85,6 +86,7 @@ function ReleaseSection({
 export default function ChangelogScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const bottomPadding = useBottomScrollPadding(32);
   // The latest release starts open; older ones are a tap away.
   const [openReleases, setOpenReleases] = useState<Set<string>>(
     () => new Set(RELEASE_GROUPS.slice(0, 1).map((g) => g.release.version)),
@@ -102,7 +104,10 @@ export default function ChangelogScreen() {
   return (
     <ThemedView style={styles.container}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: bottomPadding },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.intro}>
@@ -133,7 +138,6 @@ function createStyles(colors: AppThemeColors) {
     scrollContent: {
       padding: 20,
       paddingTop: 12,
-      paddingBottom: 32,
     },
     intro: {
       fontSize: 15,

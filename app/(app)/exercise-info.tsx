@@ -37,6 +37,7 @@ import {
 } from "@/constants/dbTranslations";
 import { displayWorkoutName } from "@/utils/workoutName";
 import { showsEnglishName } from "@/utils/db/exerciseNames";
+import { useBottomScrollPadding } from "@/hooks/useBottomScrollPadding";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -48,6 +49,7 @@ const isTab = (value: unknown): value is Tab =>
 export default function ExerciseInfoScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const bottomPadding = useBottomScrollPadding(50);
   const { exercise_id, tab: tabParam } = useLocalSearchParams<{
     exercise_id: string;
     tab?: string;
@@ -253,7 +255,12 @@ export default function ExerciseInfoScreen() {
       ) : activeTab === "progress" ? (
         <ExerciseProgressTab exerciseId={exerciseData.exercise_id} />
       ) : activeTab === "about" ? (
-        <ScrollView contentContainerStyle={styles.infoContent}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.infoContent,
+            { paddingBottom: bottomPadding },
+          ]}
+        >
           <View style={styles.imageContainer}>
             {animatedImageLoading ? (
               <ActivityIndicator size="large" />
@@ -371,6 +378,7 @@ export default function ExerciseInfoScreen() {
           keyExtractor={(item: HistorySet) => item.id.toString()}
           contentContainerStyle={[
             styles.historyContent,
+            { paddingBottom: bottomPadding },
             sections.length === 0 && styles.historyEmpty,
           ]}
           renderSectionHeader={({ section }: { section: HistorySection }) => (
@@ -531,7 +539,6 @@ function createStyles(colors: AppThemeColors) {
     // About tab
     infoContent: {
       padding: 16,
-      paddingBottom: 50,
       backgroundColor: colors.surface,
     },
     detailsContainer: {
@@ -583,7 +590,6 @@ function createStyles(colors: AppThemeColors) {
     // History tab
     historyContent: {
       paddingHorizontal: 16,
-      paddingBottom: 50,
       backgroundColor: colors.surface,
     },
     historyEmpty: {

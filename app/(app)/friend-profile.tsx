@@ -36,6 +36,7 @@ import { displayWorkoutName } from "@/utils/workoutName";
 import { formatDecimal, formatNumber } from "@/utils/numberFormat";
 import { newestFirst } from "@/utils/newestFirst";
 import { displayExerciseName } from "@/utils/db/exerciseNames";
+import { useBottomScrollPadding } from "@/hooks/useBottomScrollPadding";
 
 type SectionKey = "strength" | "plans" | "workouts" | "exercises" | "activity";
 
@@ -68,6 +69,7 @@ function formatMeasurementSummary(values: Record<string, number>): string {
 export default function FriendProfileScreen() {
   const { friendUid } = useLocalSearchParams<{ friendUid: string }>();
   const { colors, borders } = useAppTheme();
+  const bottomPadding = useBottomScrollPadding(40);
   const router = useRouter();
   const user = useContext(AuthContext);
   const { friends } = useSocialStore();
@@ -203,7 +205,7 @@ export default function FriendProfileScreen() {
     <ScrollView
       testID="friend-profile-scroll"
       style={{ flex: 1, backgroundColor: colors.surface }}
-      contentContainerStyle={{ paddingBottom: 40 }}
+      contentContainerStyle={{ paddingBottom: bottomPadding }}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}

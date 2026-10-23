@@ -5,6 +5,10 @@ import HelpScreen from "../help";
 import { HELP_DATA as mockHelpData } from "@/constants/HelpData";
 
 const mockParams: { group?: string } = {};
+jest.mock("react-native-safe-area-context", () => ({
+  ...jest.requireActual("react-native-safe-area-context"),
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => mockParams,
 }));
