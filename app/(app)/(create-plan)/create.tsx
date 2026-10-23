@@ -21,6 +21,7 @@ import {
   useLocalSearchParams,
   useNavigation,
 } from "expo-router";
+import { useBottomScrollPadding } from "@/hooks/useBottomScrollPadding";
 import { useCreatePlan } from "@/hooks/useCreatePlan";
 import WorkoutCard from "@/components/WorkoutCard";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
@@ -47,6 +48,7 @@ export default function CreatePlanScreen() {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+  const bottomPadding = useBottomScrollPadding(50);
   const {
     workouts,
     planImageUrl,
@@ -369,7 +371,7 @@ export default function CreatePlanScreen() {
       />
       <ScrollView
         ref={scrollRef}
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 50 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: bottomPadding }}
       >
         {!dataLoaded ? (
           <ThemedView style={styles.loadingContainer}>
